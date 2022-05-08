@@ -1,0 +1,6 @@
+cache/
+out/
+build/
+lib/
+priv/
+node_modules/
