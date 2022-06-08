@@ -40,7 +40,7 @@ function check_args() {
 function phase1() {
   # Phase1: Setup ceremony
   # output: ptau${POWERS_OF_TAU}_0000.ptau (powers of tau ceremony initial parameters)
-  snarkjs powersoftau new bn128 12 ${TAU_DIR}/pot${POWERS_OF_TAU}_0000.ptau -v
+  snarkjs powersoftau new bn128 ${POWERS_OF_TAU} ${TAU_DIR}/pot${POWERS_OF_TAU}_0000.ptau -v
   snarkjs powersoftau contribute ${TAU_DIR}/pot${POWERS_OF_TAU}_0000.ptau ${TAU_DIR}/pot${POWERS_OF_TAU}_0001.ptau --name="1st contribution" -v -e="$(head -n 4096 /dev/urandom | openssl sha256)"
 
   # Verify Phase1:
