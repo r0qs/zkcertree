@@ -127,6 +127,20 @@ function gen_verifier_contract() {
 	# snarkjs zkey export soliditycalldata ./build/public.json ./build/proof.json | tee parameters.txt
 }
 
+function gen_witness() {
+	check_args $1 "circuit name not informed"
+	circuit=$1
+
+	CIRCUIT_DIR=${ARTIFACTS_DIR}/${circuit}
+	INPUTS=${INPUTS_DIR}/${circuit}
+
+	node ${CIRCUIT_DIR}/generate_witness.js ${CIRCUIT_DIR}/${circuit}.wasm ${INPUTS}/inputs.json ${INPUTS}/witness.wtns
+
+	# export witness
+	# output: witness.json
+	snarkjs wtns export json ${INPUTS}/witness.wtns ${INPUTS}/witness.json -v
+}
+
 function gen_proof() {
 	check_args $1 "circuit name not informed"
 	circuit=$1
@@ -139,20 +153,25 @@ function gen_proof() {
 	# output: witness.wtns (private witness binary)
 	# snarkjs wtns calculate ${CIRCUIT_DIR}/${circuit}.wasm ${INPUTS}/inputs.json ${INPUTS}/witness.wtns
 
-	node ${CIRCUIT_DIR}/generate_witness.js ${CIRCUIT_DIR}/${circuit}.wasm ${INPUTS}/inputs.json ${INPUTS}/witness.wtns
-
-	# export witness
-	# output: witness.json
-	snarkjs wtns export json ${INPUTS}/witness.wtns ${INPUTS}/witness.json
+	# TODO: only generate witness if wtns files is not passed
+	gen_witness $1
 
 	# generate the proof using the proving zkey and witness
 	# output: proof.json and public.json
-	snarkjs plonk prove ${CIRCUIT_DIR}/${circuit}.zkey ${INPUTS}/witness.wtns ${INPUTS}/proof.json ${INPUTS}/public.json
+	snarkjs plonk prove ${CIRCUIT_DIR}/${circuit}.zkey ${INPUTS}/witness.wtns ${INPUTS}/proof.json ${INPUTS}/public.json -v
 
 	# generate the proof using the proving zkey and private inputs
 	# snarkjs plonk fullprove ${INPUTS}/inputs.json ${CIRCUIT_DIR}/${circuit}.wasm ./build/circuit_${circuit}.zkey ${INPUTS}/proof.json ${INPUTS}/public.json
 
 	# snarkjs groth16 prove ${CIRCUIT_DIR}/${circuit}.zkey ${INPUTS}/witness.wtns ${INPUTS}/proof.json ${INPUTS}/public.json
+}
+
+function gen_calldata() {
+	check_args $1 "circuit name not informed"
+	circuit=$1
+	INPUTS=${INPUTS_DIR}/${circuit}
+
+	snarkjs generatecall -pub ${INPUTS}/public.json -proof ${INPUTS}/proof.json | tee ${INPUTS}/parameters.txt
 }
 
 function verify() {
@@ -175,7 +194,9 @@ usage() {
 	echo '    -compile  Compile circuits'
 	echo '    -export-vkey  Export verification key json'
 	echo '    -gen-vcontract  Generate verifier smart contract'
+	echo '    -gen-witness  Generate witness'
 	echo '    -gen-proof  Generate Plonk proof'
+	echo '    -gen-calldata  Generate calldata'
 	echo '    -verify  Verify proof'
 	echo
 }
@@ -189,7 +210,9 @@ case ${option} in
 	-compile) compile_circuit "${@:2}";;
 	-export-vkey) export_verification_key "${@:2}";;
 	-gen-vcontract) gen_verifier_contract "${@:2}";;
+	-gen-witness) gen_witness "${@:2}";;
 	-gen-proof) gen_proof "${@:2}";;
+	-gen-calldata) gen_calldata "${@:2}";;
 	-verify) verify "${@:2}";;
 	*) usage; exit 1;;
 esac
