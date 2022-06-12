@@ -1,6 +1,4 @@
 cache/
-out/
 build/
-lib/
-priv/
+private/
 node_modules/

@@ -1,0 +1,5 @@
+[default]
+src = "contracts"
+test = "test"
+out = "build/contracts"
+libs = ["lib"]

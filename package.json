@@ -1,0 +1,51 @@
+{
+  "name": "zkcertree-poc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "zk:tau": "./scripts/zkp_setup.sh -download-tau",
+    "zk:phase1": "./scripts/zkp_setup.sh -phase1",
+    "zk:compile": "./scripts/zkp_setup.sh -compile",
+    "zk:phase2": "./scripts/zkp_setup.sh -phase2",
+    "zk:gen:verifier": "./scripts/zkp_setup.sh -export-vkey",
+    "zk:gen:sol_verifier": "./scripts/zkp_setup.sh -gen-vcontract",
+    "zk:gen:witness": "./scripts/zkp_setup.sh -gen-witness",
+    "zk:gen:proof": "./scripts/zkp_setup.sh -gen-proof",
+    "zk:gen:fullproof": "./scripts/zkp_setup.sh -gen-fullproof",
+    "zk:gen:calldata": "./scripts/zkp_setup.sh -gen-calldata",
+    "zk:verify": "./scripts/zkp_setup.sh -verify",
+    "compile:hasher": "node ./scripts/compile_hasher.js",
+    "clean": "rm -rf ./build/issue ./build/approve ./out ./cache ./private/*/witness.* ./contracts/*Verifier.sol",
+    "test": "forge test",
+    "eslint": "eslint --ext .js --ignore-path .gitignore .",
+    "prettier:check": "prettier --check . --config .prettierrc",
+    "prettier:fix": "prettier --write . --config .prettierrc",
+    "lint": "npm run eslint src && npm run prettier:check"
+  },
+  "author": "Rodrigo Q. Saramago",
+  "license": "GPL-3.0",
+  "dependencies": {
+    "blake-hash": "^2.0.0",
+    "chai": "^4.3.6",
+    "circom_tester": "^0.0.11",
+    "circomlib": "^2.0.3",
+    "circomlibjs": "^0.1.2",
+    "dotenv": "^16.0.0",
+    "ethers": "^5.6.8",
+    "ffjavascript": "^0.2.54",
+    "hardhat": "^2.9.9",
+    "snarkjs": "^0.4.16",
+    "fixed-merkle-tree": "^0.7.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.16.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "mocha": "^10.0.0",
+    "babel-eslint": "^10.1.0",
+    "prettier": "^2.3.1",
+    "prettier-plugin-solidity": "^1.0.0-beta.13",
+    "solhint-plugin-prettier": "^0.0.5"
+  }
+}
