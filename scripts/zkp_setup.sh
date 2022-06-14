@@ -6,7 +6,7 @@ CONTRACTS_DIR=${ROOT_DIR}/contracts
 INPUTS_DIR=${ROOT_DIR}/private # for tests
 
 # circuits with max 2^POWERS_OF_TAU constraints
-POWERS_OF_TAU=15
+POWERS_OF_TAU=18 # TODO: load from .env
 ARTIFACTS_DIR=build
 TAU_DIR=${ARTIFACTS_DIR}/ptau
 
