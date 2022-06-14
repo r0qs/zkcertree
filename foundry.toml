@@ -3,3 +3,4 @@ src = "contracts"
 test = "test"
 out = "build/contracts"
 libs = ["lib"]
+solc_version = "0.8.13"
