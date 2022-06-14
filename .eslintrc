@@ -23,5 +23,11 @@
     "comma-dangle": ["error", "always-multiline"],
     "require-await": "error",
     "prettier/prettier": ["error", { "printWidth": 110 }]
-  }
+  },
+  "overrides": [
+    {
+      "files": ["hardhat.config.js"],
+      "globals": { "task": true }
+    }
+  ]
 }
