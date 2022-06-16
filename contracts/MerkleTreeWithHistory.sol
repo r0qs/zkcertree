@@ -1,6 +1,6 @@
-// SPDX-License-Identifier: MIT
+// SPDX-License-Identifier: GPL-3.0
 // Based on TornadoCash MerkleTreeWithHistory contract
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity ^0.8.0;
 
 interface IHasher {
     function poseidon(bytes32[2] calldata inputs) external pure returns (bytes32);

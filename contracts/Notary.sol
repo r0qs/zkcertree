@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: GPL-3.0
-pragma solidity >=0.7.0 <0.9.0;
+pragma solidity ^0.8.0;
 
 import "contracts/MerkleTreeWithHistory.sol";
 
@@ -16,7 +16,6 @@ abstract contract Notary is MerkleTreeWithHistory {
 
     IVerifier public immutable verifier;
     address public immutable multisig;
-    bytes32 public root; // TODO: keep history of last 10 roots
     mapping(bytes32 => CredentialState) public nullifierHashes;
     // kept to prevent accidental issuance with the same commitment
     mapping(bytes32 => bool) public commitments; // FIXME: maybe not really needed (remove)
