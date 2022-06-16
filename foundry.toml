@@ -2,5 +2,5 @@
 src = "contracts"
 test = "test"
 out = "artifacts/contracts"
-libs = ["lib"]
+libs = ["lib", "node_modules"]
 solc_version = "0.8.13"
