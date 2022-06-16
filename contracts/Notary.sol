@@ -20,7 +20,7 @@ abstract contract Notary is MerkleTreeWithHistory {
     // kept to prevent accidental issuance with the same commitment
     mapping(bytes32 => bool) public commitments; // FIXME: maybe not really needed (remove)
 
-    event CredentialCreated(bytes32 indexed commitment, uint32 leafIndex, uint256 timestamp);
+    event CredentialCreated(bytes32 indexed commitment, uint32 index, uint256 timestamp);
     event CredentialIssued(address indexed subject, bytes32 nullifierHash, uint256 timestamp);
     event CredentialRevoked(bytes32 indexed nullifierHash, string reason, uint256 timestamp);
 
