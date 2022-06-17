@@ -28,7 +28,6 @@
     "prettier:fix": "prettier --write . --config .prettierrc",
     "lint": "npm run eslint src && npm run prettier:check"
   },
-
   "dependencies": {
     "@nomiclabs/hardhat-ethers": "^2.0.6",
     "@nomiclabs/hardhat-etherscan": "^3.1.0",
@@ -40,24 +39,25 @@
     "dotenv": "^16.0.1",
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.8",
-    "hardhat": "^2.9.9",
-    "hardhat-gas-reporter": "^1.0.8",
     "ffjavascript": "^0.2.54",
     "fixed-merkle-tree": "^0.7.3",
-    "snarkjs": "^0.4.16"
+    "hardhat": "^2.9.9",
+    "hardhat-gas-reporter": "^1.0.8",
+    "snarkjs": "^0.4.16",
+    "web3": "^1.7.3"
   },
   "devDependencies": {
     "@nomiclabs/hardhat-etherscan": "^3.1.0",
     "babel-eslint": "^10.1.0",
-    "eslint": "^8.16.0",
     "chai": "^4.3.6",
+    "eslint": "^8.16.0",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "mocha": "^10.0.0",
     "prettier": "^2.6.2",
     "prettier-plugin-solidity": "^1.0.0-beta.13",
     "solhint": "^3.3.7",
-    "solidity-coverage": "^0.7.21",
-    "solhint-plugin-prettier": "^0.0.5"
+    "solhint-plugin-prettier": "^0.0.5",
+    "solidity-coverage": "^0.7.21"
   }
 }
