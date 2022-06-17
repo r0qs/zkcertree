@@ -1,13 +1,13 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "contracts/MerkleTreeWithHistory.sol";
+import "contracts/MerkleTree.sol";
 
 interface IVerifier {
     function verifyProof(bytes memory proof, uint256[] memory pubSignals) external view returns (bool);
 }
 
-abstract contract Notary is MerkleTreeWithHistory {
+abstract contract Notary is MerkleTree {
     struct CredentialState {
         bool issued;
         bool revoked;
@@ -41,7 +41,7 @@ abstract contract Notary is MerkleTreeWithHistory {
         uint32 _levels,
         address _hasher,
         address _multisig
-    ) MerkleTreeWithHistory(_levels, _hasher) {
+    ) MerkleTree(_levels, _hasher) {
         verifier = _verifier;
         multisig = _multisig;
     }
@@ -79,7 +79,6 @@ abstract contract Notary is MerkleTreeWithHistory {
         bytes32 _nullifierHash
     ) public {
         require(!isIssued(_nullifierHash), "Credential already issued");
-        require(isKnownRoot(_root), "Cannot find the merkle root");
 
         uint256[] memory pubSignals = new uint256[](3);
         pubSignals[0] = uint256(_root);
@@ -107,7 +106,9 @@ abstract contract Notary is MerkleTreeWithHistory {
     function revoke(bytes32 _nullifierHash, string memory _reason) public onlyMultisig {
         require(isIssued(_nullifierHash), "Credential not found");
         require(!isRevoked(_nullifierHash), "Credential already revoked");
+        require(bytes(_reason).length != 0, "A reason must be given");
 
+        nullifierHashes[_nullifierHash].revoked = true;
         _processRevocation(_nullifierHash);
 
         // solhint-disable-next-line not-rely-on-time

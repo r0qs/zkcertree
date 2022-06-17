@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "forge-std/console2.sol";
-
 contract HasherFactory {
     address private deployed;
     bytes private hasherCode;
