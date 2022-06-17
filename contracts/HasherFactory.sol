@@ -3,11 +3,6 @@ pragma solidity ^0.8.0;
 
 import "forge-std/console2.sol";
 
-interface IHasher {
-    function poseidon(bytes32[2] calldata inputs) external pure returns (bytes32);
-    function poseidon(uint256[2] calldata inputs) external pure returns (uint256);
-}
-
 contract HasherFactory {
     address private deployed;
     bytes private hasherCode;
