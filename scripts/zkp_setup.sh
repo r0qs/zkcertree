@@ -112,7 +112,7 @@ function export_verification_key() {
 }
 
 # Generates the Verifier smart contract
-# output: ${CONTRACTS_DIR}/Verifier_${circuit}.sol
+# output: ${CONTRACTS_DIR}/${capitalCircuitName}Verifier.sol
 function gen_verifier_contract() {
 	check_args $1 "circuit name not informed"
 	circuit=$1
@@ -122,6 +122,10 @@ function gen_verifier_contract() {
 	local capitalCircuitName=$(echo "${circuit}" | sed 's/^[a-z]/\U&/')
 
 	snarkjs zkey export solidityverifier ${CIRCUIT_DIR}/${circuit}.zkey ${CONTRACTS_DIR}/${capitalCircuitName}Verifier.sol -v
+
+	# Update the solidity version and contract name
+	sed -i "s/>=0.7.0 <0.9.0;/^0.8.0;/g" ${CONTRACTS_DIR}/${capitalCircuitName}Verifier.sol
+	sed -i "s/contract PlonkVerifier/contract ${capitalCircuitName}Verifier/g" ${CONTRACTS_DIR}/${capitalCircuitName}Verifier.sol
 }
 
 # Generates witness by running the circuit over the inputs
