@@ -1,17 +1,17 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "contracts/MerkleTree.sol";
+import "contracts/MerkleTreeWithHistory.sol";
 
 interface IVerifier {
     function verifyProof(bytes memory proof, uint256[] memory pubSignals) external view returns (bool);
 }
 
-abstract contract Notary is MerkleTree {
+abstract contract Notary is MerkleTreeWithHistory {
     struct CredentialState {
         bool issued;
         bool revoked;
-        uint256 expirationDate; //TODO
+        // uint256 expirationDate; //TODO
     }
 
     IVerifier public immutable verifier;
@@ -25,7 +25,7 @@ abstract contract Notary is MerkleTree {
     event CredentialRevoked(bytes32 indexed nullifierHash, string reason, uint256 timestamp);
 
     modifier onlyMultisig() {
-        require(msg.sender == multisig, "only multisig");
+        require(msg.sender == multisig, "Only multisig");
         _;
     }
 
@@ -41,7 +41,7 @@ abstract contract Notary is MerkleTree {
         uint32 _levels,
         address _hasher,
         address _multisig
-    ) MerkleTree(_levels, _hasher) {
+    ) MerkleTreeWithHistory(_levels, _hasher) {
         verifier = _verifier;
         multisig = _multisig;
     }
@@ -79,6 +79,7 @@ abstract contract Notary is MerkleTree {
         bytes32 _nullifierHash
     ) public {
         require(!isIssued(_nullifierHash), "Credential already issued");
+        require(isKnownRoot(_root), "Merkle root not found");
 
         uint256[] memory pubSignals = new uint256[](3);
         pubSignals[0] = uint256(_root);
@@ -86,7 +87,7 @@ abstract contract Notary is MerkleTree {
         pubSignals[2] = uint256(uint160(msg.sender));
         require(verifier.verifyProof(_proof, pubSignals), "Invalid issuance proof");
 
-        nullifierHashes[_nullifierHash] = CredentialState(true, false, 0);
+        nullifierHashes[_nullifierHash] = CredentialState(true, false);
         _processApproval(_nullifierHash);
 
         // solhint-disable-next-line not-rely-on-time

@@ -1,10 +1,10 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "../MerkleTree.sol";
+import "../MerkleTreeWithHistory.sol";
 
-contract MerkleTreeMock is MerkleTree {
-  constructor(uint32 _treeLevels, address _hasher) MerkleTree(_treeLevels, _hasher) {
+contract MerkleTreeWithHistoryMock is MerkleTreeWithHistory {
+  constructor(uint32 _treeLevels, address _hasher) MerkleTreeWithHistory(_treeLevels, _hasher) {
     // solhint-disable-previous-line no-empty-blocks
   }
 

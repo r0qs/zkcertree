@@ -28,7 +28,6 @@ contract HasherFactory {
     function deploy(bytes32 _salt) public authorizedDeployer(_salt) returns (address hasherImpl) {
         bytes memory code = hasherCode;
 
-        // target address
         address target = address(uint160(uint256(keccak256(
             abi.encodePacked(bytes1(0xff), address(this), _salt, code)))));
 

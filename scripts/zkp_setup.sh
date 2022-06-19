@@ -124,6 +124,7 @@ function gen_verifier_contract() {
 	snarkjs zkey export solidityverifier ${CIRCUIT_DIR}/${circuit}.zkey ${CONTRACTS_DIR}/${capitalCircuitName}Verifier.sol -v
 
 	# Update the solidity version and contract name
+	# TODO: get solidity version from config
 	sed -i "s/>=0.7.0 <0.9.0;/^0.8.0;/g" ${CONTRACTS_DIR}/${capitalCircuitName}Verifier.sol
 	sed -i "s/contract PlonkVerifier/contract ${capitalCircuitName}Verifier/g" ${CONTRACTS_DIR}/${capitalCircuitName}Verifier.sol
 }
