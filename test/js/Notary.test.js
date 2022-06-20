@@ -152,20 +152,18 @@ describe('PrivateNotary', function () {
 
 		it('should emit event', async () => {
 			const { pvtNotaryImpl, multisig } = await loadFixture(fixture)
-			const commitment = toFixedHex(42)
+			const commitment1 = toFixedHex(42)
+			const commitment2 = toFixedHex(43)
 
-			await pvtNotaryImpl.connect(multisig).issue(commitment)
+			let block = await ethers.provider.getBlock()
+			expect(await pvtNotaryImpl.connect(multisig).issue(commitment1))
+				.to.emit(pvtNotaryImpl, "CredentialCreated")
+				.withArgs(commitment1, 0, block.timestamp)
 
-			const filter = pvtNotaryImpl.filters.CredentialCreated()
-			const fromBlock = await ethers.provider.getBlock()
-			const events = await pvtNotaryImpl.queryFilter(filter, fromBlock.number)
-
-			expect(events).to.not.be.empty
-			expect(events).to.have.length(1)
-			expect(events[0].event).to.equal("CredentialCreated")
-			expect(events[0].args.commitment).to.equal(commitment)
-			expect(events[0].args.index).to.equal(0)
-			expect(events[0].args.timestamp).to.equal(fromBlock.timestamp)
+			block = await ethers.provider.getBlock()
+			expect(await pvtNotaryImpl.connect(multisig).issue(commitment2))
+				.to.emit(pvtNotaryImpl, "CredentialCreated")
+				.withArgs(commitment2, 1, block.timestamp)
 		})
 
 		it('should not register an already registered commitment', async () => {
@@ -194,18 +192,10 @@ describe('PrivateNotary', function () {
 
 			await pvtNotaryImpl.connect(multisig).issue(toFixedHex(credential.commitment))
 
-			await pvtNotaryImpl.connect(sender1).approve(_proof, _root, _nullifierHash)
-
-			const filter = pvtNotaryImpl.filters.CredentialIssued()
 			const fromBlock = await ethers.provider.getBlock()
-			const events = await pvtNotaryImpl.queryFilter(filter, fromBlock.number)
-
-			expect(events).to.not.be.empty
-			expect(events).to.have.length(1)
-			expect(events[0].event).to.equal("CredentialIssued")
-			expect(events[0].args.subject).to.equal(sender1.address)
-			expect(events[0].args.nullifierHash).to.equal(_nullifierHash)
-			expect(events[0].args.timestamp).to.equal(fromBlock.timestamp)
+			expect(await pvtNotaryImpl.connect(sender1).approve(_proof, _root, _nullifierHash))
+				.to.emit(pvtNotaryImpl, "CredentialIssued")
+				.withArgs(sender1.address, _nullifierHash, fromBlock.timestamp)
 
 			const state = await pvtNotaryImpl.nullifierHashes(_nullifierHash)
 			expect(state.issued).to.be.true
@@ -286,18 +276,11 @@ describe('PrivateNotary', function () {
 			const _nullifierHash = toFixedHex(1)
 			const _reason = "some reason"
 			await pvtNotaryImpl.forceApprove(toFixedHex(0), _nullifierHash)
-			await pvtNotaryImpl.revoke(_nullifierHash, _reason)
 
-			const filter = pvtNotaryImpl.filters.CredentialRevoked()
 			const fromBlock = await ethers.provider.getBlock()
-			const events = await pvtNotaryImpl.queryFilter(filter, fromBlock.number)
-
-			expect(events).to.not.be.empty
-			expect(events).to.have.length(1)
-			expect(events[0].event).to.equal("CredentialRevoked")
-			expect(events[0].args.nullifierHash).to.equal(_nullifierHash)
-			expect(events[0].args.reason).to.equal(_reason)
-			expect(events[0].args.timestamp).to.equal(fromBlock.timestamp)
+			expect(await pvtNotaryImpl.revoke(_nullifierHash, _reason))
+				.to.emit(pvtNotaryImpl, "CredentialRevoked")
+				.withArgs(_nullifierHash, _reason, fromBlock.timestamp)
 
 			const state = await pvtNotaryImpl.nullifierHashes(_nullifierHash)
 			expect(state.issued).to.be.true
@@ -308,7 +291,8 @@ describe('PrivateNotary', function () {
 			const { pvtNotaryImpl } = await loadFixture(fixture)
 
 			const _nullifierHash = toFixedHex(1)
-			await expect(pvtNotaryImpl.revoke(_nullifierHash, "something")).to.revertedWith("Credential not found")
+			await expect(pvtNotaryImpl.revoke(_nullifierHash, "something"))
+				.to.be.revertedWith("Credential not found")
 
 			const state = await pvtNotaryImpl.nullifierHashes(_nullifierHash)
 			expect(state.issued).to.be.false
@@ -320,7 +304,8 @@ describe('PrivateNotary', function () {
 
 			const _nullifierHash = toFixedHex(1)
 			await pvtNotaryImpl.forceApprove(toFixedHex(0), _nullifierHash)
-			await expect(pvtNotaryImpl.revoke(_nullifierHash, "")).to.revertedWith("A reason must be given")
+			await expect(pvtNotaryImpl.revoke(_nullifierHash, ""))
+				.to.be.revertedWith("A reason must be given")
 
 			const state = await pvtNotaryImpl.nullifierHashes(_nullifierHash)
 			expect(state.issued).to.be.true
@@ -338,7 +323,8 @@ describe('PrivateNotary', function () {
 			expect(state.issued).to.be.true
 			expect(state.revoked).to.be.true
 
-			await expect(pvtNotaryImpl.revoke(_nullifierHash, "another thing")).to.revertedWith("Credential already revoked")
+			await expect(pvtNotaryImpl.revoke(_nullifierHash, "another thing"))
+				.to.be.revertedWith("Credential already revoked")
 		})
 	})
 
