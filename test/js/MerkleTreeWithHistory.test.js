@@ -176,7 +176,7 @@ describe('MerkleTreeWithHistory', function () {
     it('hasher gas', async () => {
       const { tree: mtContract } = await loadFixture(fixture)
       const gas = await mtContract.estimateGas.hashLeftRight(toFixedHex(123), toFixedHex(456))
-      console.log('hasher gas', gas - 21000)
+      console.log('\thasher gas', gas - 21000)
     })
   })
 
