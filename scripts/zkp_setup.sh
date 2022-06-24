@@ -6,14 +6,15 @@ CONTRACTS_DIR=${ROOT_DIR}/contracts
 INPUTS_DIR=${ROOT_DIR}/private # for tests
 
 # circuits with max 2^POWERS_OF_TAU constraints
-POWERS_OF_TAU=18 # TODO: load from .env
+POWERS_OF_TAU=20 # TODO: load from .env
 ARTIFACTS_DIR=build
 TAU_DIR=${ARTIFACTS_DIR}/ptau
 
 function init() {
 	mkdir -p ${TAU_DIR}
 
-	circuit_source=( issue approve score auth )
+	# List of current supported circuits
+	circuit_source=( issue approve12 auth12 score12 )
 	for circuit_file in "${circuit_source[@]}"; do
 		if [ ! -d "${ARTIFACTS_DIR}/${circuit_file}" ]; then
 			mkdir -p ${ARTIFACTS_DIR}/${circuit_file}
@@ -64,6 +65,7 @@ function preparePhase2() {
   snarkjs powersoftau verify ${TAU_DIR}/pot${POWERS_OF_TAU}.ptau
 }
 
+# https://github.com/iden3/snarkjs#7-prepare-phase-2
 function downloadTAU() {
   if [ ! -f ${TAU_DIR}/pot${POWERS_OF_TAU}.ptau ]; then
     echo "Downloading powers of tau file"

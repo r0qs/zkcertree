@@ -28,9 +28,9 @@ describe('PrivateNotary', function () {
 		issueWasmFile = basePath.concat('/issue/issue.wasm')
 		issueZKeyFile = basePath.concat('/issue/issue.zkey')
 		issueVKey = unstringifyBigInts(require('../../build/issue/verification_key.json'))
-		approveWasmFile = basePath.concat('/approve/approve.wasm')
-		approveZKeyFile = basePath.concat('/approve/approve.zkey')
-		approveVKey = unstringifyBigInts(require('../../build/approve/verification_key.json'))
+		approveWasmFile = basePath.concat('/approve12/approve12.wasm')
+		approveZKeyFile = basePath.concat('/approve12/approve12.zkey')
+		approveVKey = unstringifyBigInts(require('../../build/approve12/verification_key.json'))
 	})
 
 	function poseidonHash(items) {
@@ -99,7 +99,7 @@ describe('PrivateNotary', function () {
 		require('../../scripts/compile_hasher')
 
 		const [multisig, sender1, sender2] = await ethers.getSigners()
-		const approveVerifier = await deploy('ApproveVerifier')
+		const approveVerifier = await deploy('Approve12Verifier')
 		const hasher = await deploy('Hasher')
 		const pvtNotaryImpl = await deploy(
 			'PrivateNotaryMock',

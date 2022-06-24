@@ -35,6 +35,3 @@ template IssuanceChecker(levels) {
 	signal subjectSquare;
 	subjectSquare <== subject * subject;
 }
-
-// width of tree (2^x) == number of credentials
-component main {public [root, nullifierHash, subject]} = IssuanceChecker(12); 

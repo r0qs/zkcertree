@@ -5,7 +5,7 @@ import "forge-std/Test.sol";
 import "forge-std/Vm.sol";
 import "contracts/Notary.sol";
 import "contracts/HasherFactory.sol";
-import "contracts/ApproveVerifier.sol";
+import "contracts/Approve12Verifier.sol";
 
 contract NotaryTest is Test {
     PrivateNotary public notary;
@@ -19,7 +19,7 @@ contract NotaryTest is Test {
         HasherFactory factory = new HasherFactory();
         address hasherContract = factory.deploy(salt);
 
-        ApproveVerifier verifierContract = new ApproveVerifier();
+        Approve12Verifier verifierContract = new Approve12Verifier();
         notary = new PrivateNotary(IVerifier(address(verifierContract)), levels, hasherContract, owner);
 
         bytes32 initialRoot = notary.getLastRoot();
