@@ -1,21 +1,25 @@
-
 const path = require('path')
 const hre = require('hardhat')
 const { ethers, waffle } = hre
 const { loadFixture } = waffle
-const { BigNumber, utils } = ethers
 const { expect } = require('chai')
 const createBlakeHash = require("blake-hash")
 const { wtns, plonk } = require('snarkjs')
 const { buildEddsa, buildBabyjub } = require('circomlibjs')
 const { unstringifyBigInts, stringifyBigInts, leBuff2int } = require('ffjavascript').utils
-
 const { MerkleTree } = require('fixed-merkle-tree')
-const { prepareApproveCallData, bitArrayToDecimal, toFixedHex, deploy, FIELD_SIZE } = require('../../src/utils')
+const {
+	FIELD_SIZE,
+	deploy,
+	toFixedHex,
+	prepareApproveCallData,
+	generateIssueSnarkProof,
+	generateApproveSnarkProof,
+	generateApproveSnarkProofFromContract } = require('../../src/utils')
 const { randomBN } = require('./utils')
 const Poseidon = require('../../src/poseidon')
 
-const DEFAULT_ZERO_VALUE = 0
+const ZERO_VALUE = 0
 const MERKLE_TREE_HEIGHT = 12
 
 describe('PrivateNotary', function () {
@@ -41,58 +45,25 @@ describe('PrivateNotary', function () {
 		return poseidonHash([a, b])
 	}
 
-	function getNewTree(tree_height = MERKLE_TREE_HEIGHT, zero = DEFAULT_ZERO_VALUE) {
-		return new MerkleTree(tree_height, [], { hashFunction: poseidonHash2, zeroElement: zero })
+	function getNewTree(leaves = [], tree_height = MERKLE_TREE_HEIGHT, zero = ZERO_VALUE) {
+		return new MerkleTree(tree_height, leaves, { hashFunction: poseidonHash2, zeroElement: zero })
 	}
 
-	function createCredential(secret, nullifier, tree, idx) {
+	function createCredential(secret, nullifier) {
 		let credential = { secret, nullifier }
 		credential.commitment = poseidonHash2(credential.nullifier, credential.secret)
 		credential.nullifierHash = poseidonHash([credential.nullifier])
-
-		tree.insert(credential.commitment)
-		const { pathElements, pathIndices } = tree.path(idx)
-		credential.pathElements = pathElements
-		credential.pathIndices = pathIndices
-
 		return credential
 	}
 
-	async function generateIssueSnarkProof(credential, signature, publicKey) {
-		const inputs = stringifyBigInts({
-			nullifierHash: credential.nullifierHash,
-			credentialCommitment: credential.commitment,
-			publicKey: [
-				babyJub.F.toObject(publicKey[0]),
-				babyJub.F.toObject(publicKey[1])
-			],
-			nullifier: credential.nullifier,
-			secret: credential.secret,
-			signature: [
-				babyJub.F.toObject(signature.R8[0]),
-				babyJub.F.toObject(signature.R8[1]),
-				signature.S
-			],
-		})
+	// insertCommitment inserts a commitment in the tree and returns the merkle proof
+	function insertCommitment(tree, commitment) {
+		tree.insert(commitment)
 
-		console.log("\tgenerating snark proof...")
-		return await plonk.fullProve(inputs, issueWasmFile, issueZKeyFile)
-	}
+		const index = tree.indexOf(commitment)
+		const { pathElements, pathIndices } = tree.path(index)
 
-	async function generateApproveSnarkProof(root, subjectAddr, credential) {
-		const inputs = stringifyBigInts({
-			root: root,
-			nullifierHash: credential.nullifierHash,
-			subject: BigNumber.from(subjectAddr).toString(),
-			nullifier: credential.nullifier,
-			secret: credential.secret,
-			pathElements: credential.pathElements,
-			pathIndices: bitArrayToDecimal(credential.pathIndices).toString(),
-		})
-
-		// TODO: mock test proofs
-		console.log("\tgenerating snark proof...")
-		return await plonk.fullProve(inputs, approveWasmFile, approveZKeyFile)
+		return { pathElements, pathIndices, root: tree.root }
 	}
 
 	async function fixture(tree_height = MERKLE_TREE_HEIGHT) {
@@ -124,7 +95,7 @@ describe('PrivateNotary', function () {
 			expect(await pvtNotaryImpl.levels()).to.equal(MERKLE_TREE_HEIGHT)
 			expect(await pvtNotaryImpl.levels()).to.equal(tree.levels)
 			expect(await pvtNotaryImpl.FIELD_SIZE()).to.equal(FIELD_SIZE)
-			expect(await pvtNotaryImpl.ZERO_VALUE()).to.equal(DEFAULT_ZERO_VALUE)
+			expect(await pvtNotaryImpl.ZERO_VALUE()).to.equal(ZERO_VALUE)
 		})
 	})
 
@@ -184,10 +155,10 @@ describe('PrivateNotary', function () {
 
 			const secret = randomBN().toString()
 			const nullifier = randomBN().toString()
-			const idx = await pvtNotaryImpl.nextIndex()
-			const credential = createCredential(secret, nullifier, tree, idx)
+			const credential = createCredential(secret, nullifier)
+			const merkleProof = insertCommitment(tree, credential.commitment)
 
-			const { proof, publicSignals } = await generateApproveSnarkProof(tree.root, sender1.address, credential)
+			const { proof, publicSignals } = await generateApproveSnarkProof(merkleProof, sender1.address, credential)
 			const { _proof, _root, _nullifierHash } = await prepareApproveCallData(proof, publicSignals)
 
 			await pvtNotaryImpl.connect(multisig).issue(toFixedHex(credential.commitment))
@@ -208,10 +179,10 @@ describe('PrivateNotary', function () {
 
 			const secret = randomBN().toString()
 			const nullifier = randomBN().toString()
-			const idx = await pvtNotaryImpl.nextIndex()
-			const credential = createCredential(secret, nullifier, tree, idx)
+			const credential = createCredential(secret, nullifier)
+			const merkleProof = insertCommitment(tree, credential.commitment)
 
-			const { proof, publicSignals } = await generateApproveSnarkProof(tree.root, sender1.address, credential)
+			const { proof, publicSignals } = await generateApproveSnarkProof(merkleProof, sender1.address, credential)
 
 			const { _proof, _root, _nullifierHash } = await prepareApproveCallData(proof, publicSignals)
 
@@ -242,6 +213,38 @@ describe('PrivateNotary', function () {
 
 			await pvtNotaryImpl.forceApprove(toFixedHex(0), toFixedHex(1))
 			await expect(pvtNotaryImpl.connect(sender1).approve(toFixedHex(0), toFixedHex(0), toFixedHex(1))).to.be.revertedWith("Credential already issued")
+		})
+
+		it('should approve using the latest root on-chain', async () => {
+			const { pvtNotaryImpl, multisig, sender1 } = await loadFixture(fixture)
+
+			// creates 3 commitments
+			let credential
+			for (let i = 0; i < 3; i++) {
+				let secret = randomBN().toString()
+				let nullifier = randomBN().toString()
+				let cred = createCredential(secret, nullifier)
+
+				// save the first credential to test
+				if (i == 0) {
+					credential = cred
+				}
+
+				await pvtNotaryImpl.connect(multisig).issue(toFixedHex(cred.commitment))
+			}
+
+			let { proof, publicSignals } = await generateApproveSnarkProofFromContract(pvtNotaryImpl, poseidonHash2, sender1.address, credential)
+
+			let { _proof, _root, _nullifierHash } = await prepareApproveCallData(proof, publicSignals)
+
+			const fromBlock = await ethers.provider.getBlock()
+			expect(await pvtNotaryImpl.connect(sender1).approve(_proof, _root, _nullifierHash))
+				.to.emit(pvtNotaryImpl, "CredentialIssued")
+				.withArgs(sender1.adress, _nullifierHash, fromBlock.timestamp)
+
+			const state = await pvtNotaryImpl.nullifierHashes(_nullifierHash)
+			expect(state.issued).to.be.true
+			expect(state.revoked).to.be.false
 		})
 	})
 
@@ -351,15 +354,15 @@ describe('PrivateNotary', function () {
 		})
 
 		it('should successfully verify valid approval proofs', async () => {
-			const { pvtNotaryImpl, sender1 } = await loadFixture(fixture)
+			const { sender1 } = await loadFixture(fixture)
 			const tree = getNewTree()
 
 			const secret = randomBN().toString()
 			const nullifier = randomBN().toString()
-			const idx = await pvtNotaryImpl.nextIndex()
-			const credential = createCredential(secret, nullifier, tree, idx)
+			const credential = createCredential(secret, nullifier)
+			const merkleProof = insertCommitment(tree, credential.commitment)
 
-			const { proof, publicSignals } = await generateApproveSnarkProof(tree.root, sender1.address, credential)
+			const { proof, publicSignals } = await generateApproveSnarkProof(merkleProof, sender1.address, credential)
 
 			expect(await plonk.verify(approveVKey, publicSignals, proof)).to.be.true
 		})
