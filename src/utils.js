@@ -4,6 +4,7 @@ const { ethers } = require('hardhat')
 const { BigNumber } = ethers
 const { MerkleTree } = require('fixed-merkle-tree')
 const { plonk } = require('snarkjs')
+const { sign } = require('crypto')
 const { unstringifyBigInts, stringifyBigInts, leBuff2int } = require('ffjavascript').utils
 
 // TODO: load from config
@@ -55,9 +56,8 @@ async function generateMerkleProof(notary, hashfn, commitment) {
   return { pathElements, pathIndices, root: tree.root }
 }
 
-
-async function generateIssueSnarkProof(credential, signature, publicKey) {
-  const inputs = stringifyBigInts({
+function prepareIssueProofInputs(credential, signature, publicKey) {
+  return stringifyBigInts({
     nullifierHash: credential.nullifierHash,
     credentialCommitment: credential.commitment,
     publicKey: [
@@ -72,6 +72,10 @@ async function generateIssueSnarkProof(credential, signature, publicKey) {
       signature.S
     ],
   })
+}
+
+async function generateIssueSnarkProof(credential, signature, publicKey) {
+  const inputs = prepareIssueProofInputs(credential, signature, publicKey)
 
   console.log("\tgenerating snark proof...")
   return await plonk.fullProve(inputs, issueWasmFile, issueZKeyFile)
@@ -86,8 +90,8 @@ async function generateApproveSnarkProofFromContract(notary, hashfn, subjectAddr
   return await generateApproveSnarkProof({ root, pathElements, pathIndices }, subjectAddr, credential)
 }
 
-async function generateApproveSnarkProof(merkleProof, subjectAddr, credential) {
-  const inputs = stringifyBigInts({
+function prepareApproveProofInputs(merkleProof, subjectAddr, credential) {
+  return stringifyBigInts({
     root: merkleProof.root,
     nullifierHash: credential.nullifierHash,
     subject: BigNumber.from(subjectAddr).toString(),
@@ -96,6 +100,10 @@ async function generateApproveSnarkProof(merkleProof, subjectAddr, credential) {
     pathElements: merkleProof.pathElements,
     pathIndices: bitArrayToDecimal(merkleProof.pathIndices).toString(),
   })
+}
+
+async function generateApproveSnarkProof(merkleProof, subjectAddr, credential) {
+  const inputs = prepareApproveProofInputs(merkleProof, subjectAddr, credential)
 
   console.log("\tgenerating snark proof...")
   return await plonk.fullProve(inputs, approveWasmFile, approveZKeyFile)

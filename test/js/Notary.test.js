@@ -4,9 +4,9 @@ const { ethers, waffle } = hre
 const { loadFixture } = waffle
 const { expect } = require('chai')
 const createBlakeHash = require("blake-hash")
-const { wtns, plonk } = require('snarkjs')
+const { plonk } = require('snarkjs')
 const { buildEddsa, buildBabyjub } = require('circomlibjs')
-const { unstringifyBigInts, stringifyBigInts, leBuff2int } = require('ffjavascript').utils
+const { unstringifyBigInts, leBuff2int } = require('ffjavascript').utils
 const { MerkleTree } = require('fixed-merkle-tree')
 const {
 	FIELD_SIZE,
