@@ -1,10 +1,10 @@
 /* Based on: https://github.com/tornadocash/tornado-nova/blob/master/src/utils.js */
 const assert = require('assert')
+const crypto = require('crypto')
 const { ethers } = require('hardhat')
 const { BigNumber } = ethers
 const { MerkleTree } = require('fixed-merkle-tree')
 const { plonk } = require('snarkjs')
-const { sign } = require('crypto')
 const { unstringifyBigInts, stringifyBigInts, leBuff2int } = require('ffjavascript').utils
 
 // TODO: load from config
@@ -13,6 +13,8 @@ const ZERO_VALUE = process.env.ZERO_VALUE || 0
 const FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617',
 )
+
+const randomBN = (length = 32) => BigNumber.from(crypto.randomBytes(length))
 
 // BigNumber to hex string of specified length
 const toFixedHex = (number, length = 32) => {
@@ -138,6 +140,7 @@ function bitArrayToDecimal(array) {
 module.exports = {
   MERKLE_TREE_HEIGHT,
   FIELD_SIZE,
+  randomBN,
   toFixedHex,
   toBuffer,
   deploy,
