@@ -1,11 +1,10 @@
 /* Based on: https://github.com/tornadocash/tornado-nova/blob/master/src/utils.js */
-const assert = require('assert')
 const crypto = require('crypto')
 const { ethers } = require('hardhat')
 const { BigNumber } = ethers
 const { MerkleTree } = require('fixed-merkle-tree')
 const { plonk } = require('snarkjs')
-const { unstringifyBigInts, stringifyBigInts, leBuff2int } = require('ffjavascript').utils
+const { unstringifyBigInts } = require('ffjavascript').utils
 
 // TODO: load from config
 const MERKLE_TREE_HEIGHT = process.env.MERKLE_TREE_HEIGHT || 12
@@ -58,59 +57,6 @@ async function generateMerkleProof(notary, hashfn, commitment) {
   return { pathElements, pathIndices, root: tree.root }
 }
 
-function prepareIssueProofInputs(credential, signature, publicKey) {
-  return stringifyBigInts({
-    nullifierHash: credential.nullifierHash,
-    commitment: credential.commitment,
-    publicKey: [
-      babyJub.F.toObject(publicKey[0]),
-      babyJub.F.toObject(publicKey[1])
-    ],
-    nullifier: credential.nullifier,
-    secret: credential.secret,
-    signature: [
-      babyJub.F.toObject(signature.R8[0]),
-      babyJub.F.toObject(signature.R8[1]),
-      signature.S
-    ],
-  })
-}
-
-async function generateIssueSnarkProof(credential, signature, publicKey) {
-  const inputs = prepareIssueProofInputs(credential, signature, publicKey)
-
-  console.log("\tgenerating snark proof...")
-  return await plonk.fullProve(inputs, issueWasmFile, issueZKeyFile)
-}
-
-async function generateApproveSnarkProofFromContract(notary, hashfn, subjectAddr, credential) {
-  const { root, pathElements, pathIndices } = await generateMerkleProof(notary, hashfn, credential.commitment)
-
-  const isValidRoot = await notary.callStatic.isKnownRoot(toFixedHex(root))
-  assert(isValidRoot === true, 'Merkle tree is corrupted')
-
-  return await generateApproveSnarkProof({ root, pathElements, pathIndices }, subjectAddr, credential)
-}
-
-function prepareApproveProofInputs(merkleProof, subjectAddr, credential) {
-  return stringifyBigInts({
-    root: merkleProof.root,
-    nullifierHash: credential.nullifierHash,
-    subject: BigNumber.from(subjectAddr).toBigInt(),
-    nullifier: credential.nullifier,
-    secret: credential.secret,
-    pathElements: merkleProof.pathElements,
-    pathIndices: bitArrayToDecimal(merkleProof.pathIndices).toString(),
-  })
-}
-
-async function generateApproveSnarkProof(merkleProof, subjectAddr, credential) {
-  const inputs = prepareApproveProofInputs(merkleProof, subjectAddr, credential)
-
-  console.log("\tgenerating snark proof...")
-  return await plonk.fullProve(inputs, approveWasmFile, approveZKeyFile)
-}
-
 async function prepareSolidityCallData(proofData, publicSignals) {
   const calldata = await plonk.exportSolidityCallData(unstringifyBigInts(proofData), unstringifyBigInts(publicSignals))
   const [proof, ...rest] = calldata.split(",")
@@ -118,16 +64,6 @@ async function prepareSolidityCallData(proofData, publicSignals) {
   return {
     proof: proof,
     publicSignals: JSON.parse(rest.join(","))
-  }
-}
-
-async function prepareApproveCallData(proofData, publicSignals) {
-  const calldata = await prepareSolidityCallData(proofData, publicSignals)
-  return {
-    _proof: calldata.proof,
-    _root: calldata.publicSignals[0],
-    _nullifierHash: calldata.publicSignals[1],
-    _subject: calldata.publicSignals[2],
   }
 }
 
@@ -146,9 +82,6 @@ module.exports = {
   deploy,
   buildMerkleTree,
   generateMerkleProof,
-  generateIssueSnarkProof,
-  generateApproveSnarkProof,
-  generateApproveSnarkProofFromContract,
-  prepareApproveCallData,
+  prepareSolidityCallData,
   bitArrayToDecimal
 }

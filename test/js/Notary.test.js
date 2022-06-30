@@ -1,39 +1,29 @@
-const path = require('path')
 const hre = require('hardhat')
 const { ethers, waffle } = hre
 const { loadFixture } = waffle
 const { expect } = require('chai')
 const { plonk } = require('snarkjs')
-const { buildEddsa, buildBabyjub } = require('circomlibjs')
-const { unstringifyBigInts } = require('ffjavascript').utils
+const { buildEddsa } = require('circomlibjs')
 const { MerkleTree } = require('fixed-merkle-tree')
 const {
 	FIELD_SIZE,
 	deploy,
 	randomBN,
-	toFixedHex,
-	prepareApproveCallData,
-	generateIssueSnarkProof,
-	generateApproveSnarkProof,
-	generateApproveSnarkProofFromContract } = require('../../src/utils')
+	toFixedHex } = require('../../src/utils')
 const Poseidon = require('../../src/poseidon')
+const IssueProver = require('../../src/issue')
+const ApproveProver = require('../../src/approve')
 
 const ZERO_VALUE = 0
 const MERKLE_TREE_HEIGHT = 12
 
 describe('PrivateNotary', function () {
-	const basePath = path.resolve(__dirname, "../../build")
 
 	before(async () => {
 		eddsa = await buildEddsa()
-		babyJub = await buildBabyjub()
 		poseidon = await Poseidon.initialize()
-		issueWasmFile = basePath.concat('/issue/issue.wasm')
-		issueZKeyFile = basePath.concat('/issue/issue.zkey')
-		issueVKey = unstringifyBigInts(require('../../build/issue/verification_key.json'))
-		approveWasmFile = basePath.concat('/approve12/approve12.wasm')
-		approveZKeyFile = basePath.concat('/approve12/approve12.zkey')
-		approveVKey = unstringifyBigInts(require('../../build/approve12/verification_key.json'))
+		issueProver = await IssueProver.initialize()
+		approveProver = await ApproveProver.initialize()
 	})
 
 	function poseidonHash(items) {
@@ -157,8 +147,8 @@ describe('PrivateNotary', function () {
 			const credential = createCredential(secret, nullifier)
 			const merkleProof = insertCommitment(tree, credential.commitment)
 
-			const { proof, publicSignals } = await generateApproveSnarkProof(merkleProof, sender1.address, credential)
-			const { _proof, _root, _nullifierHash } = await prepareApproveCallData(proof, publicSignals)
+			const { proof, publicSignals } = await approveProver.generateSnarkProof(merkleProof, sender1.address, credential)
+			const { _proof, _root, _nullifierHash } = await approveProver.prepareCallData(proof, publicSignals)
 
 			await pvtNotaryImpl.connect(multisig).issue(toFixedHex(credential.commitment))
 
@@ -181,9 +171,9 @@ describe('PrivateNotary', function () {
 			const credential = createCredential(secret, nullifier)
 			const merkleProof = insertCommitment(tree, credential.commitment)
 
-			const { proof, publicSignals } = await generateApproveSnarkProof(merkleProof, sender1.address, credential)
+			const { proof, publicSignals } = await approveProver.generateSnarkProof(merkleProof, sender1.address, credential)
 
-			const { _proof, _root, _nullifierHash } = await prepareApproveCallData(proof, publicSignals)
+			const { _proof, _root, _nullifierHash } = await approveProver.prepareCallData(proof, publicSignals)
 
 			await pvtNotaryImpl.connect(multisig).issue(toFixedHex(credential.commitment))
 
@@ -232,9 +222,9 @@ describe('PrivateNotary', function () {
 				await pvtNotaryImpl.connect(multisig).issue(toFixedHex(cred.commitment))
 			}
 
-			let { proof, publicSignals } = await generateApproveSnarkProofFromContract(pvtNotaryImpl, poseidonHash2, sender1.address, credential)
+			let { proof, publicSignals } = await approveProver.generateSnarkProofFromContract(pvtNotaryImpl, poseidonHash2, sender1.address, credential)
 
-			let { _proof, _root, _nullifierHash } = await prepareApproveCallData(proof, publicSignals)
+			let { _proof, _root, _nullifierHash } = await approveProver.prepareCallData(proof, publicSignals)
 
 			const fromBlock = await ethers.provider.getBlock()
 			expect(await pvtNotaryImpl.connect(sender1).approve(_proof, _root, _nullifierHash))
@@ -345,9 +335,9 @@ describe('PrivateNotary', function () {
 			const publicKey = eddsa.prv2pub(subjectWallet.privateKey)
 			expect(eddsa.verifyPoseidon(credential.commitment, signature, publicKey)).to.be.true
 
-			const { proof, publicSignals } = await generateIssueSnarkProof(credential, signature, publicKey)
+			const { proof, publicSignals } = await issueProver.generateSnarkProof(credential, signature, publicKey)
 
-			expect(await plonk.verify(issueVKey, publicSignals, proof)).to.be.true
+			expect(await plonk.verify(issueProver.verificationKey(), publicSignals, proof)).to.be.true
 		})
 
 		it('should successfully verify valid approval proofs', async () => {
@@ -359,9 +349,9 @@ describe('PrivateNotary', function () {
 			const credential = createCredential(secret, nullifier)
 			const merkleProof = insertCommitment(tree, credential.commitment)
 
-			const { proof, publicSignals } = await generateApproveSnarkProof(merkleProof, sender1.address, credential)
+			const { proof, publicSignals } = await approveProver.generateSnarkProof(merkleProof, sender1.address, credential)
 
-			expect(await plonk.verify(approveVKey, publicSignals, proof)).to.be.true
+			expect(await plonk.verify(approveProver.verificationKey(), publicSignals, proof)).to.be.true
 		})
 	})
 
