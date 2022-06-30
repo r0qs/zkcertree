@@ -32,7 +32,7 @@ template OffchainAuthCommitments(n, ctl, cdl) {
 	component gradeHash[n];
 	for (var i = 0; i < n; i++) {
 		// Verify wheter the commitment exists in the certree
-		certree[i] = IssuanceChecker(ctl);
+		certree[i] = Approve(ctl);
 		certree[i].root <== roots[i];
 		certree[i].nullifierHash <== nullifierHashes[i];
 		certree[i].subject <== subjects[i];

@@ -5,7 +5,7 @@ include "merkleProof.circom";
 
 // Verifies that a commitment of a given secret and nullifier
 // is included in the merkle tree of registered commitments.
-template IssuanceChecker(levels) {
+template Approve(levels) {
 	signal input root;
 	signal input nullifierHash;
 	signal input subject;

@@ -5,9 +5,9 @@ include "../node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "commit.circom";
 
 // Verifies whether a commitment is correctly formed and signed.
-template CommitmentChecker() {
+template Issue() {
 	signal input nullifierHash;
-	signal input credentialCommitment;
+	signal input commitment;
 	signal input publicKey[2];
 
 	signal input nullifier;
@@ -18,7 +18,7 @@ template CommitmentChecker() {
 	hasher.nullifier <== nullifier;
 	hasher.secret <== secret;
 	hasher.nullifierHash === nullifierHash;
-	hasher.commitment === credentialCommitment;
+	hasher.commitment === commitment;
 
 	component verifier = EdDSAPoseidonVerifier();
 	verifier.enabled <== 1;
@@ -30,4 +30,4 @@ template CommitmentChecker() {
 	verifier.S <== signature[2];
 }
 
-component main {public [credentialCommitment, nullifierHash, publicKey]} = CommitmentChecker();
+component main {public [commitment, nullifierHash, publicKey]} = Issue();

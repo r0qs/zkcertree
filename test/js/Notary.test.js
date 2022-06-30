@@ -3,20 +3,19 @@ const hre = require('hardhat')
 const { ethers, waffle } = hre
 const { loadFixture } = waffle
 const { expect } = require('chai')
-const createBlakeHash = require("blake-hash")
 const { plonk } = require('snarkjs')
 const { buildEddsa, buildBabyjub } = require('circomlibjs')
-const { unstringifyBigInts, leBuff2int } = require('ffjavascript').utils
+const { unstringifyBigInts } = require('ffjavascript').utils
 const { MerkleTree } = require('fixed-merkle-tree')
 const {
 	FIELD_SIZE,
 	deploy,
+	randomBN,
 	toFixedHex,
 	prepareApproveCallData,
 	generateIssueSnarkProof,
 	generateApproveSnarkProof,
 	generateApproveSnarkProofFromContract } = require('../../src/utils')
-const { randomBN } = require('./utils')
 const Poseidon = require('../../src/poseidon')
 
 const ZERO_VALUE = 0
@@ -188,7 +187,7 @@ describe('PrivateNotary', function () {
 
 			await pvtNotaryImpl.connect(multisig).issue(toFixedHex(credential.commitment))
 
-			// wrong sender
+			// wrong subject
 			await expect(pvtNotaryImpl.connect(sender2).approve(_proof, _root, _nullifierHash))
 				.to.be.revertedWith("Invalid issuance proof")
 
@@ -333,10 +332,8 @@ describe('PrivateNotary', function () {
 
 	describe('snark proof verification on js side', () => {
 		it('should successfully verify valid issue proofs', async () => {
-			let subjectWallet = ethers.Wallet.createRandom()
-
-			const pvkDigest = createBlakeHash("blake256").update(subjectWallet.privateKey.slice(2)).digest()
-			const secret = leBuff2int(pvkDigest).toString()
+			const subjectWallet = ethers.Wallet.createRandom()
+			const secret = randomBN().toString()
 			const nullifier = randomBN().toString()
 
 			let credential = { secret, nullifier }

@@ -61,7 +61,7 @@ async function generateMerkleProof(notary, hashfn, commitment) {
 function prepareIssueProofInputs(credential, signature, publicKey) {
   return stringifyBigInts({
     nullifierHash: credential.nullifierHash,
-    credentialCommitment: credential.commitment,
+    commitment: credential.commitment,
     publicKey: [
       babyJub.F.toObject(publicKey[0]),
       babyJub.F.toObject(publicKey[1])
@@ -96,7 +96,7 @@ function prepareApproveProofInputs(merkleProof, subjectAddr, credential) {
   return stringifyBigInts({
     root: merkleProof.root,
     nullifierHash: credential.nullifierHash,
-    subject: BigNumber.from(subjectAddr).toString(),
+    subject: BigNumber.from(subjectAddr).toBigInt(),
     nullifier: credential.nullifier,
     secret: credential.secret,
     pathElements: merkleProof.pathElements,

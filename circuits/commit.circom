@@ -21,16 +21,3 @@ template CommitmentHasher() {
 	commitmentHasher.out ==> commitment;
 	nullifierHasher.out ==> nullifierHash;
 }
-
-// computes Poseidon(salt + private key)
-template SecretHasher() {
-	signal input salt;
-	signal input prvKey;
-	signal output secretHash;
-
-	component poseidon = Poseidon(2);
-	poseidon.inputs[0] <== salt;
-	poseidon.inputs[1] <== prvKey;
-
-	poseidon.out ==> secretHash;
-}

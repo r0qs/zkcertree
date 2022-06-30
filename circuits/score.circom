@@ -3,6 +3,12 @@ pragma circom 2.0.4;
 include "auth.circom";
 
 template Score(n, ctl, cdl) {
+	signal input roots[n];
+	signal input nullifierHashes[n];
+	signal input tags[n];
+	signal input weights[n];
+	signal input result;
+
 	signal input subjects[n];
 	signal input nullifiers[n];
 	signal input secrets[n];
@@ -13,12 +19,6 @@ template Score(n, ctl, cdl) {
 	signal input pathGradesIndices[n];
 	signal input pathTags[n][cdl];
 	signal input pathTagsIndices[n];
-
-	signal input roots[n];
-	signal input nullifierHashes[n];
-	signal input tags[n];
-	signal input weights[n];
-	signal input result;
 
 	signal output out;
 
