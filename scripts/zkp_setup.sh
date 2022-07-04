@@ -14,7 +14,7 @@ function init() {
 	mkdir -p ${TAU_DIR}
 
 	# List of current supported circuits
-	circuit_source=( issue approve12 auth12 score12 )
+	circuit_source=( issue approve12 auth12 score12 verify12 )
 	for circuit_file in "${circuit_source[@]}"; do
 		if [ ! -d "${ARTIFACTS_DIR}/${circuit_file}" ]; then
 			mkdir -p ${ARTIFACTS_DIR}/${circuit_file}
