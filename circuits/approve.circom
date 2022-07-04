@@ -8,9 +8,10 @@ include "merkleProof.circom";
 template Approve(levels) {
 	signal input root;
 	signal input nullifierHash;
-	signal input subject;
+	signal input sender;
 
 	signal input nullifier;
+	signal input subject;
 	signal input secret;
 	signal input pathElements[levels];
 	signal input pathIndices;
@@ -18,6 +19,7 @@ template Approve(levels) {
 	// Verify commitment
 	component hasher = CommitmentHasher();
 	hasher.nullifier <== nullifier;
+	hasher.subject <== subject;
 	hasher.secret <== secret;
 	hasher.nullifierHash === nullifierHash;
 
@@ -30,8 +32,8 @@ template Approve(levels) {
 	}
 	tree.root === root;
 
-	// Add hidden signals to make sure that tampering with subject will invalidate the snark proof
+	// Add hidden signals to make sure that tampering with sender will invalidate the snark proof
 	// Squares are used to prevent optimizer from removing those constraints
-	signal subjectSquare;
-	subjectSquare <== subject * subject;
+	signal senderSquare;
+	senderSquare <== sender * sender;
 }
