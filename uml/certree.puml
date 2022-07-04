@@ -1,0 +1,72 @@
+@startuml (id=Registration)
+== Registration Phase ==
+Subject -> Issuer: <latex>PK_{s}</latex>
+' Creates a credential as a precise proof (merkle tree) for the subject s
+Issuer -> Issuer: <latex>Root_{Cred}, Cred_{s} = CreateCredential(s, data)</latex>
+' Send the credential to the subject over an encrypted channel
+Issuer -[#FF0000]> Subject: <latex>Cred_{s}</latex>
+' Subject -> Subject: <latex>CheckCredClaims()</latex>
+group Issue Circuit
+  Subject -> Subject: <latex>nullifier = h(Root_{Cred}, blinding)</latex>
+  Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
+  Subject -> Subject: <latex>proof_{zk} = zkProof(Comm, Sign(SK_{s}, Comm))</latex>
+end
+Subject -[#FF0000]> Issuer : <latex>(proof_{zk}, Comm)</latex>
+note right Issuer
+  Checks:
+    - The commitment is from the correct credential root
+    - The commitment is signed by the correct subject
+end note
+Issuer -> Issuer: <latex>Verify(proof_{zk}, Comm, Root_{Cred}, PK_{s})</latex>
+Issuer -> Contract: <latex>Issue(Comm)</latex>
+
+Contract -> Contract: <latex>mt.Insert(Comm)</latex>
+Contract -> Contract: <latex>Event(Comm, index, timestamp)</latex>
+@enduml
+
+@startuml (id=Approval)
+== Approval Phase ==
+Contract -> Subject: <latex>GetLastRoot()</latex>
+Subject -> Subject: <latex>mt = BuildMerkleTree()</latex>
+group Approve Circuit
+  Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
+  Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, Comm)</latex>
+  Subject -> Subject: <latex>proof_{zk} = zkProof(Comm, proof_{mt}, sender)</latex>
+end
+Subject -> Contract: <latex>Approve(proof_{zk}, Root_{mt}, nullifierHash)</latex>
+' Attest subject consents with the credential's claims
+note right Contract
+  Checks:
+    - The commitment exists in the contract's merkle tree
+    - The nullifierHash was not used
+    - The sender is the creator of the proof
+end note
+Contract -> Contract: <latex>Verify(proof_{zk}, Root_{mt}, nullifierHash, sender)</latex>
+Contract -> Contract: <latex>MarkCredentialAsIssued(nullifierHash)</latex>
+Contract -> Contract: <latex>Event(sender, nullifierHash, timestamp)</latex>
+@enduml
+
+@startuml (id=Authentication)
+== Authenticity Check ==
+Contract -> Subject: <latex>GetLastRoot()</latex>
+Subject -> Subject: <latex>mt = BuildMerkleTree()</latex>
+group Verify Circuit
+  Subject -> Subject: <latex>nullifier = h(Root_{Cred}, blinding)</latex>
+  Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
+  Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, Comm)</latex>
+  Subject -> Subject: <latex>proof_{zk} = zkProof(Comm, proof_{mt})</latex>
+end
+Subject -> Verifier: <latex>(proof_{zk}, nullifierHash,  Root_{mt}, Root_{Cred}, PK_{s})</latex>
+Verifier <- Contract: <latex>GetRootHistory(Root_{mt})</latex>
+note right Verifier
+  Checks:
+    - The subject knows the pre-image of a commitment for the presented credential
+    - The credential was issued to him (he has knowledge of the private key)
+    - The commitment exists in the contract's merkle tree for the right root (was created by the right issuer)
+    - The subject consent with the claims in the credential (nullifierHash was approved by the subject)
+    ' the last requires that we reveal the nullifierHash to the verifier, and consequently the sender
+end note
+Verifier -> Verifier: <latex>Verify(proof_{zk}, nullifierHash, Root_{mt}, Root_{Cred}, PK_{s})</latex>
+@enduml
+
+@enduml

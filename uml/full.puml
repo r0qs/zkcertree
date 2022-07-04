@@ -1,0 +1,24 @@
+@startuml certree
+!include ./pallete.puml
+!pragma teoz true
+
+' Remove the foot boxes of the diagram
+hide footbox
+' scale image
+' scale 0.6
+
+'hide unlinked participant
+hide unlinked
+
+participant "Subject" as Subject
+participant "Issuer" as  Issuer
+participant "ZKCertree Contract" as Contract
+participant "Verifier" as  Verifier
+
+!include certree.puml!Registration
+!include certree.puml!Approval
+!include certree.puml!Authentication
+' !include certree.puml!Disclosure
+' !include certree.puml!Ranking
+
+@enduml

@@ -1,0 +1,25 @@
+@startuml pallete
+' skinparam dpi 300
+' skinparam style strictuml
+skinparam shadowing false
+' skinparam maxMessageSize 200
+' skinparam classFontSize 11
+' skinparam ParticipantPadding 10
+' skinparam BoxPadding 10
+skinparam sequence {
+  ArrowColor #Black
+  ParticipantBorderColor #Black
+  ParticipantBackgroundColor #White
+  ActorBorderColor #Black
+  ActorBackgroundColor #White
+  EntityBorderColor #Black
+  EntityBackgroundColor #White
+  DatabaseBorderColor #Black
+  DatabaseBackgroundColor #White
+  LifeLineBorderColor #DimGrey
+}
+skinparam note {
+  BorderColor #Black
+  BackgroundColor #FFAAAA
+}
+@enduml
