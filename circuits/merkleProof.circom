@@ -31,5 +31,5 @@ template MerkleProof(levels) {
 		hasher[i].inputs[1] <== switcher[i].outR;
 	}
 
-	root <== hasher[levels - 1].out;
+	hasher[levels - 1].out ==> root;
 }

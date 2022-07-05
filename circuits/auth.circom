@@ -1,71 +1,76 @@
 pragma circom 2.0.4;
 
 include "../node_modules/circomlib/circuits/poseidon.circom";
-include "approve.circom";
+include "commit.circom";
 include "merkleProof.circom";
+include "credentialTree.circom";
 
 // Verifies that all grades and tags are included in the credtree and are part
 // of authentic commitments in the certree.
 // @param n is the maximum number of grades/tags ~= # of credentials
 // @param ctl is the level of the certree
 // @param cdl is the level of the credential tree
-template OffchainAuthCommitments(n, ctl, cdl) {
-	signal input grades[n];
+template VerifyDisclosedCredentialFields(n, ctl, cdl) {
+	signal input certreeRoot;
+	signal input credentialRoots[n];
+	signal input nullifierHashes[n];
+	signal input tags[n][3];
+	signal input grades[n][3];
+
 	signal input pathGrades[n][cdl];
 	signal input pathGradesIndices[n];
-
-	signal input tags[n];
 	signal input pathTags[n][cdl];
 	signal input pathTagsIndices[n];
 
-	signal input roots[n];
-	signal input nullifierHashes[n];
-
 	signal input subjects[n];
-	signal input nullifiers[n];
+	signal input blindings[n];
 	signal input secrets[n];
 	signal input pathCertreeElements[n][ctl];
 	signal input pathCertreeIndices[n];
 
 	component certree[n];
-	component credtree[2][n];
-	component gradeHash[n];
+	component hasher[n];
+	component nullifier[n];
+	component credtree[n][2];
 	for (var i = 0; i < n; i++) {
-		// Verify wheter the commitment exists in the certree
-		certree[i] = Approve(ctl);
-		certree[i].root <== roots[i];
-		certree[i].nullifierHash <== nullifierHashes[i];
-		certree[i].subject <== subjects[i];
+		nullifier[i] = Nullifier();
+		nullifier[i].root <== credentialRoots[i];
+		nullifier[i].blinding <== blindings[i];
 
-		certree[i].nullifier <== nullifiers[i];
-		certree[i].secret <== secrets[i];
+		// Verify wheter the commitment exists in the certree
+		hasher[i] = CommitmentHasher();
+		hasher[i].nullifier <== nullifier[i].out;
+		hasher[i].subject <== subjects[i];
+		hasher[i].secret <== secrets[i];
+		hasher[i].nullifierHash === nullifierHashes[i];
+
+		certree[i] = MerkleProof(ctl);
+		certree[i].leaf <== hasher[i].commitment;
 		certree[i].pathIndices <== pathCertreeIndices[i];
 		for (var j = 0; j < ctl; j++) {
 			certree[i].pathElements[j] <== pathCertreeElements[i][j];	
     }
+		certree[i].root === certreeRoot;
 
-		// Compute the grades' hash
-		// FIXME: Precise proofs uses h(property_name + value + salt)
-		// https://github.com/centrifuge/precise-proofs/blob/93cd509ec264d082ecc352d244b8681a7656dbfa/proofs/tree.go#L763
-		gradeHash[i] = Poseidon(1);
-		gradeHash[i].inputs[0] <== grades[i];
-
-		// Checks whether grades in the grades vector exists in the correspondent credtree
-		credtree[0][i] = MerkleProof(cdl);
-		credtree[0][i].leaf <== gradeHash[i].out;
-		credtree[0][i].pathIndices <== pathGradesIndices[i];
+		// Verify grade and tag fields in the credential tree
+		credtree[i][0] = CredentialProof(cdl);
+		credtree[i][0].property <== grades[i][0];
+		credtree[i][0].value <== grades[i][1];
+		credtree[i][0].salt <== grades[i][2];
+		credtree[i][0].pathIndices <== pathGradesIndices[i];
 		for (var j = 0; j < cdl; j++) {
-			credtree[0][i].pathElements[j] <== pathGrades[i][j];
+			credtree[i][0].pathElements[j] <== pathGrades[i][j];
 		}
-		credtree[0][i].root === nullifiers[i];
+		credtree[i][0].root === credentialRoots[i];
 
-		// Verify tags vector
-		credtree[1][i] = MerkleProof(cdl);
-		credtree[1][i].leaf <== tags[i];
-		credtree[1][i].pathIndices <== pathTagsIndices[i];
+		credtree[i][1] = CredentialProof(cdl);
+		credtree[i][1].property <== tags[i][0];
+		credtree[i][1].value <== tags[i][1];
+		credtree[i][1].salt <== tags[i][2];
+		credtree[i][1].pathIndices <== pathTagsIndices[i];
 		for (var j = 0; j < cdl; j++) {
-			credtree[1][i].pathElements[j] <== pathTags[i][j];
+			credtree[i][1].pathElements[j] <== pathTags[i][j];
 		}
-		credtree[1][i].root === nullifiers[i];
+		credtree[i][1].root === credentialRoots[i];
 	}
 }
