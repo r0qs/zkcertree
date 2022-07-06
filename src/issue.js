@@ -3,6 +3,7 @@ const assert = require('assert')
 const { plonk } = require('snarkjs')
 const { stringifyBigInts, unstringifyBigInts } = require('ffjavascript').utils
 const { buildEddsa } = require('circomlibjs')
+const { prepareSolidityCallData } = require('./utils')
 
 class IssueProver {
 	wasmFile
@@ -39,6 +40,19 @@ class IssueProver {
 				signature.S
 			],
 		})
+	}
+
+	async prepareCallData(proofData, publicSignals) {
+		const calldata = await prepareSolidityCallData(proofData, publicSignals)
+		return {
+			_proof: calldata.proof,
+			_commitment: calldata.publicSignals[0],
+			_credentialRoot: calldata.publicSignals[1],
+			_publicKey: [
+				calldata.publicSignals[2],
+				calldata.publicSignals[3]
+			]
+		}
 	}
 
 	async generateSnarkProof(credential, signature, publicKey) {
