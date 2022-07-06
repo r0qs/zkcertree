@@ -7,7 +7,7 @@ Issuer -> Issuer: <latex>Root_{Cred}, Cred_{s} = CreateCredential(s, data)</late
 Issuer -[#FF0000]> Subject: <latex>Cred_{s}</latex>
 ' Subject -> Subject: <latex>CheckCredClaims()</latex>
 group Issue Circuit
-  Subject -> Subject: <latex>nullifier = h(Root_{Cred}, blinding)</latex>
+  Subject -> Subject: <latex>nullifier = h(Root_{Cred})</latex>
   Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
   Subject -> Subject: <latex>proof_{zk} = zkProof(Comm, Sign(SK_{s}, Comm))</latex>
 end
@@ -27,7 +27,7 @@ Contract -> Contract: <latex>Event(Comm, index, timestamp)</latex>
 @startuml (id=Approval)
 == Approval Phase ==
 Contract -> Subject: <latex>GetLastRoot()</latex>
-Subject -> Subject: <latex>mt = BuildMerkleTree()</latex>
+Subject -> Subject: <latex>mt = BuildCertTree()</latex>
 group Approve Circuit
   Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
   Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, Comm)</latex>
@@ -49,9 +49,9 @@ Contract -> Contract: <latex>Event(sender, nullifierHash, timestamp)</latex>
 @startuml (id=Authentication)
 == Authenticity Check ==
 Contract -> Subject: <latex>GetLastRoot()</latex>
-Subject -> Subject: <latex>mt = BuildMerkleTree()</latex>
+Subject -> Subject: <latex>mt = BuildCertTree()</latex>
 group Verify Circuit
-  Subject -> Subject: <latex>nullifier = h(Root_{Cred}, blinding)</latex>
+  Subject -> Subject: <latex>nullifier = h(Root_{Cred})</latex>
   Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
   Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, Comm)</latex>
   Subject -> Subject: <latex>proof_{zk} = zkProof(Comm, proof_{mt})</latex>
