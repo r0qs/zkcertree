@@ -57,6 +57,8 @@ async function generateMerkleProof(notary, hashfn, commitment) {
   return { pathElements, pathIndices, root: tree.root }
 }
 
+// TODO: generate merkle-multiproof
+
 async function prepareSolidityCallData(proofData, publicSignals) {
   const calldata = await plonk.exportSolidityCallData(unstringifyBigInts(proofData), unstringifyBigInts(publicSignals))
   const [proof, ...rest] = calldata.split(",")

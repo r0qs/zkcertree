@@ -1,6 +1,7 @@
 const hre = require('hardhat')
 const { ethers, waffle } = hre
 const { loadFixture } = waffle
+const { utils } = ethers
 const { expect } = require('chai')
 const { plonk } = require('snarkjs')
 const { buildEddsa } = require('circomlibjs')
@@ -38,10 +39,11 @@ describe('PrivateNotary', function () {
 		return new MerkleTree(tree_height, leaves, { hashFunction: poseidonHash2, zeroElement: zero })
 	}
 
-	function createCredential(secret, nullifier) {
-		let credential = { secret, nullifier }
-		credential.commitment = poseidonHash2(credential.nullifier, credential.secret)
-		credential.nullifierHash = poseidonHash([credential.nullifier])
+	function createCredential(secret, publicKey, root) {
+		let credential = { secret, root }
+		credential.subject = poseidonHash2(eddsa.F.toObject(publicKey[0]), eddsa.F.toObject(publicKey[1]))
+		credential.commitment = poseidonHash([credential.root, credential.subject, credential.secret])
+		credential.nullifierHash = poseidonHash([credential.root])
 		return credential
 	}
 
@@ -53,6 +55,20 @@ describe('PrivateNotary', function () {
 		const { pathElements, pathIndices } = tree.path(index)
 
 		return { pathElements, pathIndices, root: tree.root }
+	}
+
+	function getAccountConfig() {
+		const networkConfig = hre.config.networks[hre.config.defaultNetwork]
+		return {
+			mnemonic: networkConfig.accounts.mnemonic,
+			path: networkConfig.accounts.path
+		}
+	}
+
+	function getWallet(idx) {
+		const accountConfig = getAccountConfig()
+		const accountPath = accountConfig.path.concat(`/${idx}`)
+		return utils.HDNode.fromMnemonic(accountConfig.mnemonic).derivePath(accountPath)
 	}
 
 	async function fixture(tree_height = MERKLE_TREE_HEIGHT) {
@@ -143,8 +159,11 @@ describe('PrivateNotary', function () {
 			const tree = getNewTree()
 
 			const secret = randomBN().toString()
-			const nullifier = randomBN().toString()
-			const credential = createCredential(secret, nullifier)
+			const credentialRoot = randomBN().toString()
+
+			const wallet = getWallet(1) // sender1
+			const publicKey = eddsa.prv2pub(wallet.privateKey)
+			const credential = createCredential(secret, publicKey, credentialRoot)
 			const merkleProof = insertCommitment(tree, credential.commitment)
 
 			const { proof, publicSignals } = await approveProver.generateSnarkProof(merkleProof, sender1.address, credential)
@@ -167,8 +186,11 @@ describe('PrivateNotary', function () {
 			const tree = getNewTree()
 
 			const secret = randomBN().toString()
-			const nullifier = randomBN().toString()
-			const credential = createCredential(secret, nullifier)
+			const credentialRoot = randomBN().toString()
+
+			const wallet = getWallet(1) // sender1
+			const publicKey = eddsa.prv2pub(wallet.privateKey)
+			const credential = createCredential(secret, publicKey, credentialRoot)
 			const merkleProof = insertCommitment(tree, credential.commitment)
 
 			const { proof, publicSignals } = await approveProver.generateSnarkProof(merkleProof, sender1.address, credential)
@@ -206,13 +228,15 @@ describe('PrivateNotary', function () {
 
 		it('should approve using the latest root on-chain', async () => {
 			const { pvtNotaryImpl, multisig, sender1 } = await loadFixture(fixture)
+			const wallet = getWallet(1) // sender1
+			const publicKey = eddsa.prv2pub(wallet.privateKey)
 
 			// creates 3 commitments
 			let credential
 			for (let i = 0; i < 3; i++) {
 				let secret = randomBN().toString()
-				let nullifier = randomBN().toString()
-				let cred = createCredential(secret, nullifier)
+				let credentialRoot = randomBN().toString()
+				let cred = createCredential(secret, publicKey, credentialRoot)
 
 				// save the first credential to test
 				if (i == 0) {
@@ -322,17 +346,14 @@ describe('PrivateNotary', function () {
 
 	describe('snark proof verification on js side', () => {
 		it('should successfully verify valid issue proofs', async () => {
-			const subjectWallet = ethers.Wallet.createRandom()
 			const secret = randomBN().toString()
-			const nullifier = randomBN().toString()
+			const credentialRoot = randomBN().toString()
+			const wallet = ethers.Wallet.createRandom()
+			const publicKey = eddsa.prv2pub(wallet.privateKey)
+			const credential = createCredential(secret, publicKey, credentialRoot)
 
-			let credential = { secret, nullifier }
-			credential.commitment = poseidonHash2(credential.nullifier, credential.secret)
-			credential.nullifierHash = poseidonHash([credential.nullifier])
+			const signature = eddsa.signPoseidon(wallet.privateKey, eddsa.F.e(credential.commitment))
 
-			const signature = eddsa.signPoseidon(subjectWallet.privateKey, eddsa.F.e(credential.commitment))
-
-			const publicKey = eddsa.prv2pub(subjectWallet.privateKey)
 			expect(eddsa.verifyPoseidon(credential.commitment, signature, publicKey)).to.be.true
 
 			const { proof, publicSignals } = await issueProver.generateSnarkProof(credential, signature, publicKey)
@@ -341,15 +362,16 @@ describe('PrivateNotary', function () {
 		})
 
 		it('should successfully verify valid approval proofs', async () => {
-			const { sender1 } = await loadFixture(fixture)
-			const tree = getNewTree()
-
 			const secret = randomBN().toString()
-			const nullifier = randomBN().toString()
-			const credential = createCredential(secret, nullifier)
+			const credentialRoot = randomBN().toString()
+			const wallet = ethers.Wallet.createRandom()
+			const publicKey = eddsa.prv2pub(wallet.privateKey)
+			const credential = createCredential(secret, publicKey, credentialRoot)
+
+			const tree = getNewTree()
 			const merkleProof = insertCommitment(tree, credential.commitment)
 
-			const { proof, publicSignals } = await approveProver.generateSnarkProof(merkleProof, sender1.address, credential)
+			const { proof, publicSignals } = await approveProver.generateSnarkProof(merkleProof, wallet.address, credential)
 
 			expect(await plonk.verify(approveProver.verificationKey(), publicSignals, proof)).to.be.true
 		})

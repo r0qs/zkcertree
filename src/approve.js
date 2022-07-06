@@ -28,21 +28,22 @@ class ApproveProver {
 		return new ApproveProver(wasmFile, zKeyFile, vKey)
 	}
 
-	async generateSnarkProofFromContract(notary, hashFn, subjectAddr, credential) {
+	async generateSnarkProofFromContract(notary, hashFn, sender, credential) {
 		const { root, pathElements, pathIndices } = await generateMerkleProof(notary, hashFn, credential.commitment)
 
 		const isValidRoot = await notary.callStatic.isKnownRoot(toFixedHex(root))
 		assert(isValidRoot === true, 'Merkle tree is corrupted')
 
-		return await this.generateSnarkProof({ root, pathElements, pathIndices }, subjectAddr, credential)
+		return await this.generateSnarkProof({ root, pathElements, pathIndices }, sender, credential)
 	}
 
-	prepareInputs(merkleProof, subjectAddr, credential) {
+	prepareInputs(merkleProof, sender, credential) {
 		return stringifyBigInts({
 			root: merkleProof.root,
 			nullifierHash: credential.nullifierHash,
-			subject: BigNumber.from(subjectAddr).toBigInt(),
-			nullifier: credential.nullifier,
+			sender: BigNumber.from(sender).toBigInt(),
+			nullifier: credential.root,
+			subject: credential.subject,
 			secret: credential.secret,
 			pathElements: merkleProof.pathElements,
 			pathIndices: bitArrayToDecimal(merkleProof.pathIndices).toString(),
@@ -55,12 +56,12 @@ class ApproveProver {
 			_proof: calldata.proof,
 			_root: calldata.publicSignals[0],
 			_nullifierHash: calldata.publicSignals[1],
-			_subject: calldata.publicSignals[2],
+			_sender: calldata.publicSignals[2],
 		}
 	}
 
-	async generateSnarkProof(merkleProof, subjectAddr, credential) {
-		const inputs = this.prepareInputs(merkleProof, subjectAddr, credential)
+	async generateSnarkProof(merkleProof, sender, credential) {
+		const inputs = this.prepareInputs(merkleProof, sender, credential)
 
 		console.log("\tgenerating snark proof...")
 		return await plonk.fullProve(inputs, this.wasmFile, this.zKeyFile)

@@ -26,13 +26,12 @@ class IssueProver {
 
 	prepareInputs(credential, signature, publicKey) {
 		return stringifyBigInts({
-			nullifierHash: credential.nullifierHash,
 			commitment: credential.commitment,
+			credentialRoot: credential.root,
 			publicKey: [
 				this.eddsa.F.toObject(publicKey[0]),
 				this.eddsa.F.toObject(publicKey[1])
 			],
-			nullifier: credential.nullifier,
 			secret: credential.secret,
 			signature: [
 				this.eddsa.F.toObject(signature.R8[0]),
