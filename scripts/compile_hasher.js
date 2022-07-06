@@ -4,7 +4,7 @@
 const path = require('path')
 const fs = require('fs')
 const { createCode, generateABI } = require('circomlibjs').poseidonContract;
-const outputPath = path.join(__dirname, '..', 'artifacts', 'contracts', 'Hasher.sol')
+const outputPath = path.join(__dirname, '..', 'artifacts', 'hardhat', 'contracts', 'Hasher.sol')
 const outputFile = path.join(outputPath, 'Hasher.json')
 
 if (!fs.existsSync(outputPath)) {

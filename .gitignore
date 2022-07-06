@@ -1,4 +1,5 @@
-cache/
+forge-cache/
+hardhat-cache/
 build/
 artifacts/
 private/

@@ -1,6 +1,6 @@
 node_modules
 artifacts
 build
-cache
+hardhat-cache
+forge-cache
 coverage*
-gasReporterOutput.json

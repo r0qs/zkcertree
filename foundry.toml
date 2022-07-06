@@ -1,6 +1,7 @@
 [default]
 src = "contracts"
-test = "test"
-out = "artifacts/contracts"
-libs = ["lib", "node_modules"]
+test = "test/foundry"
+cache_path  = 'forge-cache'
+out = "artifacts/forge"
+libs = ["lib"]
 solc_version = "0.8.13"
