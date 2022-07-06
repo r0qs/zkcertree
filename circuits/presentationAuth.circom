@@ -7,19 +7,14 @@ include "merkleProof.circom";
 // Verifies the authenticity of a credential presentation
 template PresentationAuth(levels) {
 	signal input certreeRoot;
-	signal input credentialRoot;
 	signal input nullifierHash;
 	signal input publicKey[2];
 
-	signal input blinding;
+	signal input credentialRoot;
 	signal input secret;
 	signal input pathElements[levels];
 	signal input pathIndices;
 	signal input signature[3];
-
-	component nullifier = Nullifier();
-	nullifier.root <== credentialRoot;
-	nullifier.blinding <== blinding;
 
 	component subject = Subject();
 	for (var i = 0; i < 2; i++) {
@@ -27,7 +22,7 @@ template PresentationAuth(levels) {
 	}
 
 	component hasher = CommitmentHasher();
-	hasher.nullifier <== nullifier.out;
+	hasher.nullifier <== credentialRoot;
 	hasher.subject <== subject.out;
 	hasher.secret <== secret;
 	hasher.nullifierHash === nullifierHash;

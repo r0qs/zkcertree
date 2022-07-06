@@ -24,18 +24,7 @@ template CommitmentHasher() {
 	nullifierHasher.out ==> nullifierHash;
 }
 
-template Nullifier() {
-	signal input root;
-	signal input blinding;
-	signal output out;
-
-	component hasher = Poseidon(2);
-	hasher.inputs[0] <== root;
-	hasher.inputs[1] <== blinding;
-
-	hasher.out ==> out;
-}
-
+// computes Poseidon(pk.Ax + pk.Ay)
 template Subject() {
 	signal input publicKey[2];
 	signal output out;
@@ -45,4 +34,19 @@ template Subject() {
 	hasher.inputs[1] <== publicKey[1];
 
 	hasher.out ==> out;
+}
+
+// computes Poseidon(property_hash + value + salt)
+template CredentialLeafHasher() {
+	signal input property;
+	signal input value;
+	signal input salt;
+	signal output out;
+
+	component leaf = Poseidon(3);
+	leaf.inputs[0] <== property;
+	leaf.inputs[1] <== value;
+	leaf.inputs[2] <== salt;
+
+	leaf.out ==> out;
 }

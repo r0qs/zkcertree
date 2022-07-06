@@ -3,7 +3,7 @@
 // Generates Hasher artifact at compile-time
 const path = require('path')
 const fs = require('fs')
-const {createCode, generateABI} = require('circomlibjs').poseidonContract;
+const { createCode, generateABI } = require('circomlibjs').poseidonContract;
 const outputPath = path.join(__dirname, '..', 'artifacts', 'contracts', 'Hasher.sol')
 const outputFile = path.join(outputPath, 'Hasher.json')
 
