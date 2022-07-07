@@ -21,7 +21,7 @@ abstract contract Notary is MerkleTreeWithHistory {
     mapping(bytes32 => bool) public commitments; // FIXME: maybe not really needed (remove)
 
     event CredentialCreated(bytes32 indexed commitment, uint32 index, uint256 timestamp);
-    event CredentialIssued(address indexed subject, bytes32 nullifierHash, uint256 timestamp);
+    event CredentialIssued(address indexed caller, bytes32 nullifierHash, uint256 timestamp);
     event CredentialRevoked(bytes32 indexed nullifierHash, string reason, uint256 timestamp);
 
     modifier onlyMultisig() {
@@ -49,7 +49,7 @@ abstract contract Notary is MerkleTreeWithHistory {
     /**
      * @dev Registers a credential into the contract.
      * @param _commitment the credential commitment of a subject, which is
-     * Poseidon(nullifier + secret)
+     * Poseidon(nullifier + subject + secret)
      */
     function issue(bytes32 _commitment) public onlyMultisig {
         require(!commitments[_commitment], "Commitment already registered");
