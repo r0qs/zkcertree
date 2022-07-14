@@ -1,10 +1,10 @@
 pragma circom 2.0.4;
 
-// Copied from https://github.com/tornadocash/tornado-nova/tree/master/circuits
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
 
+// The MerkleProof is taken from https://github.com/tornadocash/tornado-nova/tree/master/circuits
 // Compute that merkle root for given the merkle proof and leaf.
 // pathIndices bits is an array of 0/1 selectors telling whether given
 // pathElement is on the left or right side of merkle path.
@@ -32,4 +32,121 @@ template MerkleProof(levels) {
 	}
 
 	hasher[levels - 1].out ==> root;
+}
+
+// Helper function to check whether an elements is in the neighborhood array
+function existsElement(element, neighborhood, n) {
+	for (var i = 0; i < n; i++) {
+		if (element == neighborhood[i][0] || element == neighborhood[i][1]) {
+			return 1;
+		}
+	}
+	return 0;
+}
+
+// Compute hashes of the next tree layer
+template TreeLayer(height) {
+	var nItems = 1 << height;
+	signal input indices[nItems * 2];
+	signal input proofElements[nItems * 2];
+	signal input pathElements[nItems * 2];
+	signal output nextIndices[nItems];
+	signal output remainingPath[nItems];
+	signal output layerElements[nItems];
+
+	var neighborhood[nItems][4];
+	var invalidPos = -1;
+	assert(invalidPos == 21888242871839275222246405745257275088548364400416034343698204186575808495616);
+	for(var i = 0; i < nItems; i++) {
+		neighborhood[i][0] = invalidPos;
+		neighborhood[i][1] = invalidPos;
+		neighborhood[i][2] = 0;
+		neighborhood[i][3] = 0;
+	}
+
+	var c = 0;
+	var z = 0;
+	for(var k = 0; k < nItems; k++) {
+		var elIdx = indices[z];
+		if (elIdx != invalidPos && existsElement(elIdx, neighborhood, nItems) == 0) {
+			neighborhood[c][0] = elIdx;
+			if (indices[z + 1] == elIdx ^ 1) {
+				neighborhood[c][1] = indices[z + 1];
+				neighborhood[c][3] = 1; // leaf/path switch
+				z += 2;
+			} else {
+				neighborhood[c][1] = elIdx ^ 1;
+				z++;
+			}
+			if (elIdx % 2 != 0) {
+				neighborhood[c][2] = 1; // left/right switch
+			}
+			c++;
+		}
+	}
+
+	var i = 0;
+	var j = 0;
+	var w = 0;
+	var layer[nItems][2];
+	var remaining[nItems];
+	component switcher[nItems];
+	for(var k = 0; k < nItems; k++) {
+		switcher[k] = Switcher();
+		switcher[k].sel <-- neighborhood[k][2];
+		switcher[k].L <-- proofElements[i];
+		switcher[k].R <-- (proofElements[i + 1] - pathElements[j])*neighborhood[k][3] + pathElements[j]; // TODO: check out of bounds for i/j
+		if (neighborhood[k][3] == 1) {
+			i += 2;
+			w++;
+		} else {
+			j++;
+			i++;
+		}
+		layer[k][0] = switcher[k].outL;
+		layer[k][1] = switcher[k].outR;
+	}
+
+	var l = (w > 0) ? w : j - 1; // FIXME: j == 0
+	for (var k = 0; k < nItems-l; k++) {
+		remaining[k] = pathElements[l];
+		l++;
+	}
+
+	for(var k = 0; k < nItems; k++) {
+		var nextIdx = neighborhood[k][0];
+		if (nextIdx % 2 != 0) {
+			nextIdx = neighborhood[k][1];
+		}
+		nextIndices[k] <-- (nextIdx != invalidPos) ? nextIdx \ 2 : nextIdx;
+		remainingPath[k] <-- remaining[k]; //FIXME: Non quadratic constraints
+	}
+
+	component hash[nItems];
+	for(var k = 0; k < nItems; k++) {
+		hash[k] = Poseidon(2);
+		hash[k].inputs[0] <== layer[k][0];
+		hash[k].inputs[1] <== layer[k][1];
+		hash[k].out ==> layerElements[k];
+	}
+}
+
+// Compute that merkle root for given the merkle multiproof and leaves array.
+template MerkleMultiProof(levels) {
+	var nItems = 1 << levels;
+	signal input leaves[nItems];
+	signal input pathElements[nItems];
+	signal input leafIndices[nItems]; 
+	signal output root;
+
+	component layers[levels];
+	for(var level = levels - 1; level >= 0; level--) {
+		layers[level] = TreeLayer(level);
+		for(var i = 0; i < (1 << (level + 1)); i++) {
+			layers[level].indices[i] <== level == levels - 1 ? leafIndices[i] : layers[level + 1].nextIndices[i];
+			layers[level].proofElements[i] <== level == levels - 1 ? leaves[i] : layers[level + 1].layerElements[i];
+			layers[level].pathElements[i] <== level == levels - 1 ? pathElements[i] : layers[level + 1].remainingPath[i];
+		}
+	}
+	levels > 0 ? layers[0].layerElements[0] : leaves[0] ==> root;
 }
