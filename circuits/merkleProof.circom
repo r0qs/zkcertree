@@ -69,48 +69,45 @@ template TreeLayer(height) {
 	for(var k = 0; k < nItems; k++) {
 		var elIdx = indices[z];
 		if (elIdx != invalidPos && existsElement(elIdx, neighborhood, nItems) == 0) {
-			neighborhood[c][0] = elIdx;
-			if (indices[z + 1] == elIdx ^ 1) {
-				neighborhood[c][1] = indices[z + 1];
-				neighborhood[c][3] = 1; // leaf/path switch
-				z += 2;
-			} else {
-				neighborhood[c][1] = elIdx ^ 1;
-				z++;
+			if (k == 0 || elIdx != 0 && k > 0) {
+				neighborhood[c][0] = elIdx;
+				if (indices[z + 1] == elIdx ^ 1) {
+					neighborhood[c][1] = indices[z + 1];
+					neighborhood[c][3] = 1; // proof/path switch
+					z += 2;
+				} else {
+					neighborhood[c][1] = elIdx ^ 1;
+					z++;
+				}
+				if (elIdx % 2 != 0) {
+					neighborhood[c][2] = 1; // left/right switch
+				}
+				c++;
 			}
-			if (elIdx % 2 != 0) {
-				neighborhood[c][2] = 1; // left/right switch
-			}
-			c++;
 		}
 	}
 
 	var i = 0;
 	var j = 0;
 	var w = 0;
-	var layer[nItems][2];
+	var proof[nItems * 2];
 	var remaining[nItems];
 	component switcher[nItems];
 	for(var k = 0; k < nItems; k++) {
-		switcher[k] = Switcher();
-		switcher[k].sel <-- neighborhood[k][2];
-		switcher[k].L <-- proofElements[i];
-		switcher[k].R <-- (proofElements[i + 1] - pathElements[j])*neighborhood[k][3] + pathElements[j]; // TODO: check out of bounds for i/j
-		if (neighborhood[k][3] == 1) {
-			i += 2;
-			w++;
+		if (i < z) {
+			proof[k * 2] = proofElements[i];
+			proof[k * 2 + 1] = (proofElements[i + 1] - pathElements[j])*neighborhood[k][3] + pathElements[j];
+			if (neighborhood[k][3] == 1) {
+				i += 2;
+			} else {
+				j++;
+				i++;
+			}
 		} else {
+			remaining[w] = pathElements[j];
+			w++;
 			j++;
-			i++;
 		}
-		layer[k][0] = switcher[k].outL;
-		layer[k][1] = switcher[k].outR;
-	}
-
-	var l = (w > 0) ? w : j - 1; // FIXME: j == 0
-	for (var k = 0; k < nItems-l; k++) {
-		remaining[k] = pathElements[l];
-		l++;
 	}
 
 	for(var k = 0; k < nItems; k++) {
@@ -122,11 +119,21 @@ template TreeLayer(height) {
 		remainingPath[k] <-- remaining[k]; //FIXME: Non quadratic constraints
 	}
 
+	var layer[nItems * 2];
+	for(var k =0; k < nItems; k++) {
+		switcher[k] = Switcher();
+		switcher[k].sel <-- neighborhood[k][2];
+		switcher[k].L <-- proof[k * 2];
+		switcher[k].R <-- proof[k * 2 + 1];
+		layer[k * 2] = switcher[k].outL;
+		layer[k * 2 + 1] = switcher[k].outR;
+	}
+
 	component hash[nItems];
 	for(var k = 0; k < nItems; k++) {
 		hash[k] = Poseidon(2);
-		hash[k].inputs[0] <== layer[k][0];
-		hash[k].inputs[1] <== layer[k][1];
+		hash[k].inputs[0] <== layer[k * 2];
+		hash[k].inputs[1] <== layer[k * 2 + 1];
 		hash[k].out ==> layerElements[k];
 	}
 }
@@ -148,5 +155,6 @@ template MerkleMultiProof(levels) {
 			layers[level].pathElements[i] <== level == levels - 1 ? pathElements[i] : layers[level + 1].remainingPath[i];
 		}
 	}
+
 	levels > 0 ? layers[0].layerElements[0] : leaves[0] ==> root;
 }
