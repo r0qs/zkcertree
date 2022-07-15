@@ -69,7 +69,7 @@ template TreeLayer(height) {
 	for(var k = 0; k < nItems; k++) {
 		var elIdx = indices[z];
 		if (elIdx != invalidPos && existsElement(elIdx, neighborhood, nItems) == 0) {
-			if (k == 0 || elIdx != 0 && k > 0) {
+			if (k == 0 || elIdx != 0 && k > 0) { // assumes sorted indices array
 				neighborhood[c][0] = elIdx;
 				if (indices[z + 1] == elIdx ^ 1) {
 					neighborhood[c][1] = indices[z + 1];
@@ -111,10 +111,7 @@ template TreeLayer(height) {
 	}
 
 	for(var k = 0; k < nItems; k++) {
-		var nextIdx = neighborhood[k][0];
-		if (nextIdx % 2 != 0) {
-			nextIdx = neighborhood[k][1];
-		}
+		var nextIdx = (neighborhood[k][0] % 2 == 0) ? neighborhood[k][0] : neighborhood[k][1];
 		nextIndices[k] <-- (nextIdx != invalidPos) ? nextIdx \ 2 : nextIdx;
 		remainingPath[k] <-- remaining[k]; //FIXME: Non quadratic constraints
 	}
