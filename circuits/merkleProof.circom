@@ -35,9 +35,9 @@ template MerkleProof(levels) {
 }
 
 // Helper function to check whether an elements is in the neighborhood array
-function existsElement(element, neighborhood, n) {
+function isKnownIndex(idx, neighborhood, n) {
 	for (var i = 0; i < n; i++) {
-		if (element == neighborhood[i][0] || element == neighborhood[i][1]) {
+		if (idx == neighborhood[i][0] || idx == neighborhood[i][1]) {
 			return 1;
 		}
 	}
@@ -58,29 +58,29 @@ template TreeLayer(height) {
 	var invalidPos = -1;
 	assert(invalidPos == 21888242871839275222246405745257275088548364400416034343698204186575808495616);
 	for(var i = 0; i < nItems; i++) {
-		neighborhood[i][0] = invalidPos;
-		neighborhood[i][1] = invalidPos;
-		neighborhood[i][2] = 0;
-		neighborhood[i][3] = 0;
+		neighborhood[i][0] = invalidPos; // left node
+		neighborhood[i][1] = invalidPos; // right node
+		neighborhood[i][2] = 0; // left/right switch
+		neighborhood[i][3] = 0; // proof/path switch
 	}
 
 	var c = 0;
 	var z = 0;
 	for(var k = 0; k < nItems; k++) {
 		var elIdx = indices[z];
-		if (elIdx != invalidPos && existsElement(elIdx, neighborhood, nItems) == 0) {
+		if (elIdx != invalidPos && isKnownIndex(elIdx, neighborhood, nItems) == 0) {
 			if (k == 0 || elIdx != 0 && k > 0) { // assumes sorted indices array
 				neighborhood[c][0] = elIdx;
 				if (indices[z + 1] == elIdx ^ 1) {
 					neighborhood[c][1] = indices[z + 1];
-					neighborhood[c][3] = 1; // proof/path switch
+					neighborhood[c][3] = 1;
 					z += 2;
 				} else {
 					neighborhood[c][1] = elIdx ^ 1;
 					z++;
 				}
 				if (elIdx % 2 != 0) {
-					neighborhood[c][2] = 1; // left/right switch
+					neighborhood[c][2] = 1;
 				}
 				c++;
 			}
@@ -105,8 +105,8 @@ template TreeLayer(height) {
 			}
 		} else {
 			remaining[w] = pathElements[j];
-			w++;
 			j++;
+			w++;
 		}
 	}
 
