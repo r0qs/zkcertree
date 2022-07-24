@@ -50,10 +50,7 @@ describe('PrivateNotary', function () {
 	// insertCommitment inserts a commitment in the tree and returns the merkle proof
 	function insertCommitment(tree, commitment) {
 		tree.insert(commitment)
-
-		const index = tree.indexOf(commitment)
-		const { pathElements, pathIndices } = tree.path(index)
-
+		const { pathElements, pathIndices } = tree.proof(commitment)
 		return { pathElements, pathIndices, root: tree.root }
 	}
 
@@ -376,5 +373,4 @@ describe('PrivateNotary', function () {
 			expect(await plonk.verify(approveProver.verificationKey(), publicSignals, proof)).to.be.true
 		})
 	})
-
 })
