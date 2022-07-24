@@ -17,8 +17,9 @@ participant "Verifier" as  Verifier
 
 !include certree.puml!Registration
 !include certree.puml!Approval
-!include certree.puml!Authentication
-' !include certree.puml!Disclosure
-' !include certree.puml!Ranking
+!include certree.puml!Presentation
+' !include certree.puml!PresentationCondition
+' !include certree.puml!PresentationRange
+' !include certree.puml!PresentationScore
 
 @enduml
