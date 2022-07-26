@@ -1,20 +1,20 @@
 @startuml (id=Registration)
-== Registration Phase ==
-Subject -> Issuer: <latex>PK_{s}</latex>
+' == Registration Phase ==
+Subject -> Issuer: <latex>Enrollment(PK_{s})</latex>
 ' Creates a credential as a precise proof (merkle tree) for the subject s
 Issuer -> Issuer: <latex>Root_{Cred}, Cred_{s} = CreateCredential(s, data)</latex>
 ' Send the credential to the subject over an encrypted channel
-Issuer -[#FF0000]> Subject: <latex>Cred_{s}</latex>
+Issuer -[#FF0000]> Subject: <latex>Cred_{s}</latex><size:28><&lock-locked></size>
 ' Subject -> Subject: <latex>CheckCredClaims()</latex>
 group Issue Circuit
   Subject -> Subject: <latex>nullifier = Root_{Cred}</latex>
-  ' In our case the nullifier is a shared secret between the issuer and the subject
+  ' In our case the nullifier is a shared data between the issuer and the subject
   ' TODO: Alternativaly we could hide the nullifier from the issuer while still able to prove
-  ' the correcness of the commitment (e.g. h(Croot + salt)).
+  ' the correcness of the commitment (e.g. h(CRoot + salt)).
   Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
   Subject -> Subject: <latex>proof_{zk} = zkProof(Comm, Sign(SK_{s}, Comm))</latex>
 end
-Subject -[#FF0000]> Issuer : <latex>(proof_{zk}, Comm)</latex>
+Subject -[#FF0000]> Issuer : <latex>(proof_{zk}, Comm)</latex><size:28><&lock-locked></size>
 note right Issuer
   Checks:
     - The commitment is from the correct credential root
@@ -24,13 +24,13 @@ Issuer -> Issuer: <latex>Verify(proof_{zk}, Comm, Root_{Cred}, PK_{s})</latex>
 Issuer -> Contract: <latex>Issue(Comm)</latex>
 
 Contract -> Contract: <latex>mt.Insert(Comm)</latex>
-Contract -> Contract: <latex>Event(Comm, index, timestamp)</latex>
+Contract -> Contract: <latex>Event:CredentialCreated(Comm, index, timestamp)</latex>
 @enduml
 
 @startuml (id=Approval)
-== Approval Phase ==
-Contract -> Subject: <latex>GetLastRoot()</latex>
-Subject -> Subject: <latex>mt = BuildCertTree()</latex>
+' == Approval Phase ==
+Contract -> Subject: <latex>events = CollectCredentialCreatedEvents()</latex>
+Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 group Approve Circuit
   Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
   Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, Comm)</latex>
@@ -46,29 +46,35 @@ note right Contract
 end note
 Contract -> Contract: <latex>Verify(proof_{zk}, Root_{mt}, h(nullifier), sender)</latex>
 Contract -> Contract: <latex>MarkCredentialAsIssued(h(nullifier))</latex>
-Contract -> Contract: <latex>Event(sender, h(nullifier), timestamp)</latex>
+Contract -> Contract: <latex>Event:CredentialIssued(sender, h(nullifier), timestamp)</latex>
 @enduml
 
-@startuml (id=Presentation)
-== Authenticity Check ==
-Contract -> Subject: <latex>GetLastRoot()</latex>
-Subject -> Subject: <latex>mt = BuildCertTree()</latex>
+@startuml (id=Revocation)
+' == Revocation ==
+Issuer -> Contract: <latex>Revoke(h(nullifier), reason)</latex>
+Contract -> Contract: <latex>MarkCredentialAsRevoked(h(nullifier))</latex>
+Contract -> Contract: <latex>Event:CredentialRevoked(h(nullifier), reason, timestamp)</latex>
+@enduml
+
+@startuml (id=PresentationAuth)
+' == Presentation: Authenticity Check ==
+Contract -> Subject: <latex>events = CollectCredentialCreatedEvents()</latex>
+Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 group Verify Circuit
   Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
   Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, Comm)</latex>
   Subject -> Subject: <latex>proof_{zk} = zkProof(Comm, proof_{mt}, Sign(SK_{s}, Comm))</latex>
 end
 Subject -> Verifier: <latex>(proof_{zk}, h(nullifier),  Root_{mt}, PK_{s})</latex>
-Verifier <- Contract: <latex>GetRootHistory(Root_{mt})</latex>
+Verifier <- Contract: <latex>IsKnownRoot(Root_{mt})</latex>
 note right Verifier
   Checks:
     - The subject knows the pre-image of a commitment for the presented credential
-    - The credential was issued to him (he has knowledge of the private key)
-    - The commitment exists in the contract's merkle tree for the right root (was created by the right issuer)
-    - The subject consent with the claims in the credential (h(nullifier) was approved by the subject)
-    ' the last requires that we reveal the h(nullifier) to the verifier, and consequently the sender
+    - The credential was issued to him (he has knowledge of the EdDSA private key)
+    - The subject consent with the claims in the credential (i.e. signed by the subject)
+    - The commitment exists in the contract's merkle tree for the given root (was created by the right issuer => require ENS check!)
 end note
-Verifier -> Verifier: <latex>Verify(proof_{zk}, h(nullifier), Root_{mt}, Root_{Cred}, PK_{s})</latex>
+Verifier -> Verifier: <latex>Verify(proof_{zk}, h(nullifier), Root_{mt}, PK_{s})</latex>
 @enduml
 
 @enduml
