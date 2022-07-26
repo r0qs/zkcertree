@@ -49,7 +49,7 @@ template Score(n, ctl, cdl) {
 		sameTags[i].out === 0;
 
 		tagsHasher[i] = CredentialLeafHasher();
-		tagsHasher[i].property <== tags[i][0];
+		tagsHasher[i].key <== tags[i][0];
 		tagsHasher[i].value <== tags[i][1];
 		tagsHasher[i].salt <== tags[i][2];
 		auth.tagsHash[i] <== tagsHasher[i].out;
@@ -60,7 +60,7 @@ template Score(n, ctl, cdl) {
 		}
 
 		gradesHasher[i] = CredentialLeafHasher();
-		gradesHasher[i].property <== grades[i][0];
+		gradesHasher[i].key <== grades[i][0];
 		gradesHasher[i].value <== grades[i][1];
 		gradesHasher[i].salt <== grades[i][2];
 		auth.gradesHash[i] <== gradesHasher[i].out;

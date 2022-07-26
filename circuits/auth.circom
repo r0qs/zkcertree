@@ -6,7 +6,7 @@ include "merkleProof.circom";
 
 // Verifies that all grades and tags are included in the credtree and are part
 // of authentic commitments in the certree.
-// @param n is the maximum number of grades/tags ~= # of credentials
+// @param n is the maximum number of credentials
 // @param ctl is the level of the certree
 // @param cdl is the level of the credential tree
 template VerifyCredentialFields(n, ctl, cdl) {
@@ -29,7 +29,6 @@ template VerifyCredentialFields(n, ctl, cdl) {
 	component certree[n];
 	component hasher[n];
 	component credtree[n][2];
-	// TODO: use merkle-multiproofs to prove a variable number of leaves in certree/credtree
 	for (var i = 0; i < n; i++) {
 		// Verify wheter the commitment exists in the certree
 		hasher[i] = CommitmentHasher();
@@ -63,4 +62,53 @@ template VerifyCredentialFields(n, ctl, cdl) {
 		}
 		credtree[i][1].root === credentialRoots[i];
 	}
+}
+
+template VerifyCredentialMultiField(n, ctl, cdl) {
+	signal input certreeRoot;
+	signal input nullifierHash;
+
+	signal input credentialFields[n][3];
+	signal input credentialFieldsPath[n];
+	signal input credentialFieldsIndices[n];
+
+	signal input credentialRoot;
+	signal input subject;
+	signal input secret;
+	signal input pathCertreeElements[ctl];
+	signal input pathCertreeIndices;
+
+	component certree;
+	component commitHasher;
+
+	// Verify whether the commitment exists in the certree
+	commitHasher = CommitmentHasher();
+	commitHasher.nullifier <== credentialRoot;
+	commitHasher.subject <== subject;
+	commitHasher.secret <== secret;
+	commitHasher.nullifierHash === nullifierHash;
+
+	// TODO: use one multiproof for both trees
+	// "one proof to rule them all!"
+	certree = MerkleProof(ctl);
+	certree.leaf <== commitHasher.commitment;
+	certree.pathIndices <== pathCertreeIndices;
+	for (var i = 0; i < ctl; i++) {
+		certree.pathElements[i] <== pathCertreeElements[i];
+	}
+	certree.root === certreeRoot;
+
+	// Verify whether the fields exists in the credential tree
+	component fieldHasher[n];
+	component credtree = MerkleMultiProof(cdl);
+	for (var i = 0; i < n; i++) {
+		fieldHasher[i] = CredentialLeafHasher();
+		fieldHasher[i].key <== credentialFields[i][0];
+		fieldHasher[i].value <== credentialFields[i][1];
+		fieldHasher[i].salt <== credentialFields[i][2];
+		credtree.leaves[i] <== fieldHasher[i].out;
+		credtree.pathElements[i] <== credentialFieldsPath[i];
+		credtree.leafIndices[i] <== credentialFieldsIndices[i];
+	}
+	credtree.root === credentialRoot;
 }

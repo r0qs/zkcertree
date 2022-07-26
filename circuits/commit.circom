@@ -4,6 +4,7 @@ pragma circom 2.0.4;
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 
+// TODO: salt nullifier
 // computes Poseidon(nullifier + subject + secret)
 template CommitmentHasher() {
 	signal input nullifier;
@@ -36,15 +37,28 @@ template Subject() {
 	hasher.out ==> out;
 }
 
-// computes Poseidon(property_hash + value + salt)
+// computes Poseidon(croot + salt)
+template Nullifier() {
+	signal input in;
+	signal input salt;
+	signal output out;
+
+	component hasher = Poseidon(2);
+	hasher.inputs[0] = in;
+	hasher.inputs[1] = salt;
+
+	hasher.out ==> out;
+}
+
+// computes Poseidon(key + value + salt)
 template CredentialLeafHasher() {
-	signal input property;
+	signal input key;
 	signal input value;
 	signal input salt;
 	signal output out;
 
 	component leaf = Poseidon(3);
-	leaf.inputs[0] <== property;
+	leaf.inputs[0] <== key;
 	leaf.inputs[1] <== value;
 	leaf.inputs[2] <== salt;
 

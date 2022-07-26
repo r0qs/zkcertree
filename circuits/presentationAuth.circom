@@ -4,7 +4,7 @@ include "../node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "commit.circom";
 include "merkleProof.circom";
 
-// Verifies the authenticity of a credential presentation
+// Verifies the authenticity of a given credential and if exists in the certree.
 template PresentationAuth(levels) {
 	signal input certreeRoot;
 	signal input nullifierHash;
