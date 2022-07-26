@@ -117,7 +117,7 @@ const config = {
   paths: {
     sources: "./contracts",
     cache: "./hardhat-cache",
-    tests: "./test/js",
+    tests: "./test",
     artifacts: "./artifacts/hardhat"
   },
   // This fully resolves paths for imports in the ./lib directory for Hardhat

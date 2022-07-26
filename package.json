@@ -38,7 +38,7 @@
     "ethereum-waffle": "^3.4.4",
     "ethers": "^5.6.8",
     "ffjavascript": "^0.2.54",
-    "fixed-merkle-tree": "^0.7.3",
+    "fixed-merkle-tree": "file:../fixed-merkle-tree",
     "hardhat": "^2.9.9",
     "hardhat-gas-reporter": "^1.0.8",
     "snarkjs": "^0.4.16",

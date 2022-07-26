@@ -7,7 +7,7 @@ const Poseidon = require('../../src/poseidon')
 const ZERO_VALUE = 0
 const MERKLE_TREE_HEIGHT = 12
 
-describe.only("Multiproof circuit", function () {
+describe("Multiproof circuit", function () {
 	this.timeout(25000)
 	let circuit
 

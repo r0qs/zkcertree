@@ -55,7 +55,7 @@ abstract contract Notary is MerkleTreeWithHistory {
         require(!commitments[_commitment], "Commitment already registered");
 
         uint32 insertedIndex = _insert(_commitment);
-        commitments[_commitment] = true;
+        commitments[_commitment] = true; // TODO: remove and receive merkle proof of non-inclusion
         _processRegistration(_commitment);
 
         // solhint-disable-next-line not-rely-on-time
