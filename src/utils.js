@@ -50,14 +50,17 @@ async function buildMerkleTree(notary, hashfn, tree_height = MERKLE_TREE_HEIGHT,
 // Compute merkle proof of the commitment with on-chain data
 async function generateMerkleProof(notary, hashfn, commitment) {
   const tree = await buildMerkleTree(notary, hashfn)
-
-  const index = tree.indexOf(commitment)
-  const { pathElements, pathIndices } = tree.path(index)
+  const { pathElements, pathIndices } = tree.proof(commitment)
 
   return { pathElements, pathIndices, root: tree.root }
 }
 
-// TODO: generate merkle-multiproof
+async function generateMerkleMultiProof(notary, hashfn, commitments) {
+  const tree = await buildMerkleTree(notary, hashfn)
+  const { pathElements, leafIndices } = tree.multiProof(commitments)
+
+  return { pathElements, leafIndices, root: tree.root }
+}
 
 async function prepareSolidityCallData(proofData, publicSignals) {
   const calldata = await plonk.exportSolidityCallData(unstringifyBigInts(proofData), unstringifyBigInts(publicSignals))
@@ -84,6 +87,7 @@ module.exports = {
   deploy,
   buildMerkleTree,
   generateMerkleProof,
+  generateMerkleMultiProof,
   prepareSolidityCallData,
   bitArrayToDecimal
 }
