@@ -5,7 +5,15 @@ include "commit.circom";
 include "dot.circom";
 include "auth.circom";
 
-template Score(n, ctl, cdl) {
+// Verifies whether the inner product of the grades field of credentials is the given one.
+// It also checks if the course tags met the required tags.
+// And it checks if the grades and tags fields exists in the certree by transitivity
+// i.e. if they exists in the credential root of the respective credential and if the credential
+// root exists in the given certree root.
+// ctl is the certree level
+// cdl is the credential tree level
+// n is the number of credentials in the certree that is being checked
+template Score(n, cdl, ctl) {
 	signal input root;
 	signal input nullifierHashes[n];
 	signal input requiredTags[n];
@@ -18,7 +26,6 @@ template Score(n, ctl, cdl) {
 	signal input grades[n][3];
 	signal input pathGrades[n][cdl];
 	signal input pathGradesIndices[n];
-
 	signal input credentialRoots[n];
 	signal input subjects[n];
 	signal input secrets[n];
@@ -27,7 +34,7 @@ template Score(n, ctl, cdl) {
 
 	signal output out;
 
-	component auth = VerifyCredentialFields(n, ctl, cdl);
+	component auth = VerifyCredentialFields(n, cdl, ctl);
 	component tagsHasher[n];
 	component gradesHasher[n];
 	component sameTags[n];

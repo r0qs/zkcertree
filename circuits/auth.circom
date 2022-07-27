@@ -9,7 +9,7 @@ include "merkleProof.circom";
 // @param n is the maximum number of credentials
 // @param ctl is the level of the certree
 // @param cdl is the level of the credential tree
-template VerifyCredentialFields(n, ctl, cdl) {
+template VerifyCredentialFields(n, cdl, ctl) {
 	signal input certreeRoot;
 	signal input nullifierHashes[n];
 
@@ -64,10 +64,15 @@ template VerifyCredentialFields(n, ctl, cdl) {
 	}
 }
 
-template VerifyCredentialMultiField(n, ctl, cdl) {
+// Verifies that up to n fields are included in the credtree and are part
+// of authentic commitments in the certree.
+// @param ctl is the level of the certree
+// @param cdl is the level of the credential tree
+template VerifyCredentialMultiField(cdl, ctl) {
 	signal input certreeRoot;
 	signal input nullifierHash;
 
+	var n = 1 << cdl;
 	signal input credentialFields[n][3];
 	signal input credentialFieldsPath[n];
 	signal input credentialFieldsIndices[n];
@@ -78,11 +83,8 @@ template VerifyCredentialMultiField(n, ctl, cdl) {
 	signal input pathCertreeElements[ctl];
 	signal input pathCertreeIndices;
 
-	component certree;
-	component commitHasher;
-
 	// Verify whether the commitment exists in the certree
-	commitHasher = CommitmentHasher();
+	component commitHasher = CommitmentHasher();
 	commitHasher.nullifier <== credentialRoot;
 	commitHasher.subject <== subject;
 	commitHasher.secret <== secret;
@@ -90,7 +92,7 @@ template VerifyCredentialMultiField(n, ctl, cdl) {
 
 	// TODO: use one multiproof for both trees
 	// "one proof to rule them all!"
-	certree = MerkleProof(ctl);
+	component certree = MerkleProof(ctl);
 	certree.leaf <== commitHasher.commitment;
 	certree.pathIndices <== pathCertreeIndices;
 	for (var i = 0; i < ctl; i++) {
