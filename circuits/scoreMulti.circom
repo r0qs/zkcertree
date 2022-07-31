@@ -5,7 +5,8 @@ include "commit.circom";
 include "dot.circom";
 include "auth.circom";
 
-// Verifies whether all credentials exists in the certree and that each credential's field exists in the correspondent credential tree using merkle multiproof
+// Verifies whether all credentials exists in the certree and
+// that each credential's field exists in the correspondent credential tree using merkle multiproof
 // ctl is the certree level
 // cdl is the credential tree level
 // n is the number of credentials in the certree that is being checked

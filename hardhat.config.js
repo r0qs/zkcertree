@@ -143,7 +143,7 @@ const config = {
     showTimeSpent: true,
     showMethodSig: true,
     onlyCalledMethods: true,
-    coinmarketcap: process.env.COINMARKETCAP_APIKEY !== undefined
+    coinmarketcap: process.env.COINMARKETCAP_API_KEY !== undefined
   },
   etherscan: {
     apiKey: process.env.ETHERSCAN_KEY,

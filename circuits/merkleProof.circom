@@ -92,7 +92,6 @@ template TreeLayer(height) {
 	var w = 0;
 	var proof[nItems * 2];
 	var remaining[nItems];
-	component switcher[nItems];
 	for(var k = 0; k < nItems; k++) {
 		if (i < z) {
 			proof[k * 2] = proofElements[i];
@@ -116,6 +115,7 @@ template TreeLayer(height) {
 		remainingPath[k] <-- remaining[k]; //FIXME: Non quadratic constraints
 	}
 
+	component switcher[nItems];
 	var layer[nItems * 2];
 	for(var k =0; k < nItems; k++) {
 		switcher[k] = Switcher();
