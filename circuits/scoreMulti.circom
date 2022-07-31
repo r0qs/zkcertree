@@ -3,7 +3,7 @@ pragma circom 2.0.4;
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "commit.circom";
 include "dot.circom";
-include "auth.circom";
+include "presentationFieldsAuth.circom";
 
 // Verifies whether all credentials exists in the certree and
 // that each credential's field exists in the correspondent credential tree using merkle multiproof
@@ -22,11 +22,11 @@ template ScoreMultiField(m, n, cdl, ctl) {
 	var valueIdx = 1;
 
 	signal input root;
-	signal input nullifierHashes[n];
 	signal input requiredTags[n];
 	signal input weights[n];
 	signal input result;
 
+	signal input nullifierHashes[n];
 	signal input credentialFields[n][m][3];
 	signal input credentialFieldsPath[n][m];
 	signal input credentialFieldsIndices[n][m];

@@ -3,7 +3,7 @@ pragma circom 2.0.4;
 include "../node_modules/circomlib/circuits/comparators.circom";
 include "commit.circom";
 include "dot.circom";
-include "auth.circom";
+include "presentationFieldsAuth.circom";
 
 // Verifies whether the inner product of the grades field of credentials is the given one.
 // It also checks if the course tags met the required tags.
@@ -15,11 +15,11 @@ include "auth.circom";
 // n is the number of credentials in the certree that is being checked
 template Score(n, cdl, ctl) {
 	signal input root;
-	signal input nullifierHashes[n];
 	signal input requiredTags[n];
 	signal input weights[n];
 	signal input result;
 
+	signal input nullifierHashes[n];
 	signal input tags[n][3];
 	signal input pathTags[n][cdl];
 	signal input pathTagsIndices[n];

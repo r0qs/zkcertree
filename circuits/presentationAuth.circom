@@ -5,7 +5,7 @@ include "commit.circom";
 include "merkleProof.circom";
 
 // Verifies the authenticity of a given credential and if exists in the certree.
-template PresentationAuth(levels) {
+template VerifyPresentationAuth(levels) {
 	signal input certreeRoot;
 	signal input nullifierHash;
 	signal input publicKey[2];

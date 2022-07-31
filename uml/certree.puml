@@ -60,7 +60,7 @@ Contract -> Contract: <latex>Event:CredentialRevoked(h(nullifier), reason, times
 ' == Presentation: Authenticity Check ==
 Contract -> Subject: <latex>events = CollectCredentialCreatedEvents()</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
-group Verify Circuit
+group PresentationAuth Circuit
   Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
   Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, Comm)</latex>
   Subject -> Subject: <latex>proof_{zk} = zkProof(Comm, proof_{mt}, Sign(SK_{s}, Comm))</latex>

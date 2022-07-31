@@ -17,7 +17,7 @@
     "zk:gen:fullproof": "./scripts/zkp_setup.sh -gen-fullproof",
     "zk:gen:calldata": "./scripts/zkp_setup.sh -gen-calldata",
     "zk:verify": "./scripts/zkp_setup.sh -verify",
-    "zk:clean": "rm -rf ./build/{issue,approve12,auth12,score12,presentationAuth12} ./hardhat-cache ./forge-cache ./private/*/witness.* ./contracts/*Verifier.sol",
+    "zk:clean": "rm -rf ./build/{issue,approve12,presentationAuth12,score12,presentationFieldsAuth12} ./hardhat-cache ./forge-cache ./private/*/witness.* ./contracts/*Verifier.sol",
     "compile:hasher": "npx hardhat hasher",
     "forge:test": "forge test",
     "compile": "npx hardhat compile && npm run compile:hasher",
