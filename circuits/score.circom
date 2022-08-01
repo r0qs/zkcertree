@@ -34,6 +34,7 @@ template Score(n, cdl, ctl) {
 
 	signal output out;
 
+	// FIXME: update to new VerifyCredentialField
 	component auth = VerifyCredentialFields(n, cdl, ctl);
 	component tagsHasher[n];
 	component gradesHasher[n];

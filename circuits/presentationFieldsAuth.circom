@@ -1,73 +1,71 @@
 pragma circom 2.0.4;
 
+include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "commit.circom";
 include "merkleProof.circom";
 
-// Verifies that all grades and tags are included in the credtree and are part
-// of authentic commitments in the certree.
-// @param n is the maximum number of credentials
+// Verifies if a crendential's field is included in the credtree and
+// if it has an authentic commitment in the certree.
 // @param ctl is the level of the certree
 // @param cdl is the level of the credential tree
-template VerifyCredentialFields(n, cdl, ctl) {
+template VerifyCredentialField(cdl, ctl) {
+	signal input fieldKey;
 	signal input certreeRoot;
-	signal input nullifierHashes[n];
+	signal input nullifierHash;
 
-	signal input tagsHash[n];
-	signal input pathTags[n][cdl];
-	signal input pathTagsIndices[n];
-	signal input gradesHash[n];
-	signal input pathGrades[n][cdl];
-	signal input pathGradesIndices[n];
+	signal input field[3];
+	signal input pathFieldElements[cdl];
+	signal input pathFieldIndices;
+	signal input credentialRoot;
+	signal input subject;
+	signal input secret;
+	signal input pathCertreeElements[ctl];
+	signal input pathCertreeIndices;
 
-	signal input credentialRoots[n];
-	signal input subjects[n];
-	signal input secrets[n];
-	signal input pathCertreeElements[n][ctl];
-	signal input pathCertreeIndices[n];
+	// Verify commitment
+	component commHasher = CommitmentHasher();
+	commHasher.nullifier <== credentialRoot;
+	commHasher.subject <== subject;
+	commHasher.secret <== secret;
+	commHasher.nullifierHash === nullifierHash;
 
-	component certree[n];
-	component hasher[n];
-	component credtree[n][2];
-	for (var i = 0; i < n; i++) {
-		// Verify wheter the commitment exists in the certree
-		hasher[i] = CommitmentHasher();
-		hasher[i].nullifier <== credentialRoots[i];
-		hasher[i].subject <== subjects[i];
-		hasher[i].secret <== secrets[i];
-		hasher[i].nullifierHash === nullifierHashes[i];
-
-		certree[i] = MerkleProof(ctl);
-		certree[i].leaf <== hasher[i].commitment;
-		certree[i].pathIndices <== pathCertreeIndices[i];
-		for (var j = 0; j < ctl; j++) {
-			certree[i].pathElements[j] <== pathCertreeElements[i][j];	
-    }
-		certree[i].root === certreeRoot;
-
-		// Verify grade and tag fields in the credential tree
-		credtree[i][0] = MerkleProof(cdl);
-		credtree[i][0].leaf <== gradesHash[i];
-		credtree[i][0].pathIndices <== pathGradesIndices[i];
-		for (var j = 0; j < cdl; j++) {
-			credtree[i][0].pathElements[j] <== pathGrades[i][j];
-		}
-		credtree[i][0].root === credentialRoots[i];
-
-		credtree[i][1] = MerkleProof(cdl);
-		credtree[i][1].leaf <== tagsHash[i];
-		credtree[i][1].pathIndices <== pathTagsIndices[i];
-		for (var j = 0; j < cdl; j++) {
-			credtree[i][1].pathElements[j] <== pathTags[i][j];
-		}
-		credtree[i][1].root === credentialRoots[i];
+	// Verify whether the commitment exists in the certree
+	component certree;
+	certree = MerkleProof(ctl);
+	certree.leaf <== commHasher.commitment;
+	certree.pathIndices <== pathCertreeIndices;
+	for (var j = 0; j < ctl; j++) {
+		certree.pathElements[j] <== pathCertreeElements[j];
 	}
+	certree.root === certreeRoot;
+
+	component eq = IsEqual();
+	eq.in[0] <== fieldKey;
+	eq.in[1] <== field[0];
+	// Assert keys match
+	eq.out === 1;
+
+	component fieldHasher = CredentialLeafHasher();
+	fieldHasher.key <== field[0];
+	fieldHasher.value <== field[1];
+	fieldHasher.salt <== field[2];
+
+	// Verify whether the value exists in the credential tree
+	component credtree = MerkleProof(cdl);
+	credtree.leaf <== fieldHasher.out;
+	credtree.pathIndices <== pathFieldIndices;
+	for (var j = 0; j < cdl; j++) {
+		credtree.pathElements[j] <== pathFieldElements[j];
+	}
+	credtree.root === credentialRoot;
 }
 
 // Verifies that up to n fields are included in the credtree and are part
 // of authentic commitments in the certree.
 // @param ctl is the level of the certree
 // @param cdl is the level of the credential tree
+// TODO: receive credential schema root and check against field keys.
 template VerifyCredentialMultiField(cdl, ctl) {
 	signal input certreeRoot;
 	signal input nullifierHash;
