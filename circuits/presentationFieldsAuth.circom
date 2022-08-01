@@ -1,7 +1,6 @@
 pragma circom 2.0.4;
 
 include "../node_modules/circomlib/circuits/comparators.circom";
-include "../node_modules/circomlib/circuits/poseidon.circom";
 include "commit.circom";
 include "merkleProof.circom";
 
@@ -71,9 +70,9 @@ template VerifyCredentialMultiField(cdl, ctl) {
 	signal input nullifierHash;
 
 	var n = 1 << cdl;
-	signal input credentialFields[n][3];
-	signal input credentialFieldsPath[n];
-	signal input credentialFieldsIndices[n];
+	signal input fields[n][3];
+	signal input pathFieldElements[n];
+	signal input fieldIndices[n];
 
 	signal input credentialRoot;
 	signal input subject;
@@ -103,12 +102,12 @@ template VerifyCredentialMultiField(cdl, ctl) {
 	component credtree = MerkleMultiProof(cdl);
 	for (var i = 0; i < n; i++) {
 		fieldHasher[i] = CredentialLeafHasher();
-		fieldHasher[i].key <== credentialFields[i][0];
-		fieldHasher[i].value <== credentialFields[i][1];
-		fieldHasher[i].salt <== credentialFields[i][2];
+		fieldHasher[i].key <== fields[i][0];
+		fieldHasher[i].value <== fields[i][1];
+		fieldHasher[i].salt <== fields[i][2];
 		credtree.leaves[i] <== fieldHasher[i].out;
-		credtree.pathElements[i] <== credentialFieldsPath[i];
-		credtree.leafIndices[i] <== credentialFieldsIndices[i];
+		credtree.pathElements[i] <== pathFieldElements[i];
+		credtree.leafIndices[i] <== fieldIndices[i];
 	}
 	credtree.root === credentialRoot;
 }

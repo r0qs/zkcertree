@@ -1,7 +1,6 @@
 pragma circom 2.0.4;
 
 // Modified from: https://github.com/tornadocash/tornado-core/tree/master/circuits
-include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 
 // TODO: salt nullifier
