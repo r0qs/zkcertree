@@ -29,7 +29,8 @@ Contract -> Contract: <latex>Event:CredentialCreated(Comm, index, timestamp)</la
 
 @startuml (id=Approval)
 ' == Approval Phase ==
-Contract -> Subject: <latex>events = CollectCredentialCreatedEvents()</latex>
+Subject -> Contract: <latex>CollectCredentialCreatedEvents()</latex>
+Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 group Approve Circuit
   Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
@@ -58,7 +59,8 @@ Contract -> Contract: <latex>Event:CredentialRevoked(h(nullifier), reason, times
 
 @startuml (id=PresentationAuth)
 ' == Presentation: Authenticity Check ==
-Contract -> Subject: <latex>events = CollectCredentialCreatedEvents()</latex>
+Subject -> Contract: <latex>CollectCredentialCreatedEvents()</latex>
+Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 group PresentationAuth Circuit
   Subject -> Subject: <latex>Comm = h(nullifier, secret, h(PK_{s}))</latex>
@@ -66,7 +68,8 @@ group PresentationAuth Circuit
   Subject -> Subject: <latex>proof_{zk} = zkProof(Comm, proof_{mt}, Sign(SK_{s}, Comm))</latex>
 end
 Subject -> Verifier: <latex>(proof_{zk}, h(nullifier),  Root_{mt}, PK_{s})</latex>
-Verifier <- Contract: <latex>IsKnownRoot(Root_{mt})</latex>
+Verifier -> Contract: <latex>IsKnownRoot(Root_{mt})</latex>
+Contract --> Verifier: <latex>true/false</latex>
 note right Verifier
   Checks:
     - The subject knows the pre-image of a commitment for the presented credential
@@ -75,6 +78,12 @@ note right Verifier
     - The commitment exists in the contract's merkle tree for the given root (was created by the right issuer => require ENS check!)
 end note
 Verifier -> Verifier: <latex>Verify(proof_{zk}, h(nullifier), Root_{mt}, PK_{s})</latex>
+Verifier -> Contract: <latex>VerifyCredentialStatus(h(nullifier))</latex>
+alt #lightgreen Successful case
+  Contract --> Verifier: Credential is valid (not revoked or expired)
+else #pink Failure
+  Contract --> Verifier: Credential is not valid
+end
 @enduml
 
 @enduml
