@@ -19,7 +19,7 @@ participant "Verifier" as  Verifier
 !include certree.puml!Approval
 ' !include certree.puml!Revocation
 !include certree.puml!PresentationAuth
-' !include certree.puml!PresentationCondition
+!include certree.puml!PresentationConditionalQuery
 ' !include certree.puml!PresentationRange
 ' !include certree.puml!PresentationScore
 
