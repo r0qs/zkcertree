@@ -2,8 +2,6 @@ pragma circom 2.0.4;
 
 include "../node_modules/circomlib/circuits/mux3.circom";
 include "../node_modules/circomlib/circuits/comparators.circom";
-include "commit.circom";
-include "dot.circom";
 include "presentationFieldsAuth.circom";
 
 // Compare compares a with b based on the given operator op
