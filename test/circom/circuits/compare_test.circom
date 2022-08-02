@@ -1,5 +1,5 @@
 pragma circom 2.0.4;
 
-include "../../../circuits/queryField.circom";
+include "../../../circuits/compare.circom";
 
 component main = Compare();

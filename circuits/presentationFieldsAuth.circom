@@ -69,10 +69,10 @@ template VerifyCredentialMultiField(cdl, ctl) {
 	signal input certreeRoot;
 	signal input nullifierHash;
 
-	var n = 1 << cdl;
-	signal input fields[n][3];
-	signal input pathFieldElements[n];
-	signal input fieldIndices[n];
+	var m = 1 << cdl;
+	signal input fields[m][3];
+	signal input pathFieldElements[m];
+	signal input fieldIndices[m];
 
 	signal input credentialRoot;
 	signal input subject;
@@ -98,9 +98,9 @@ template VerifyCredentialMultiField(cdl, ctl) {
 	certree.root === certreeRoot;
 
 	// Verify whether the fields exists in the credential tree
-	component fieldHasher[n];
+	component fieldHasher[m];
 	component credtree = MerkleMultiProof(cdl);
-	for (var i = 0; i < n; i++) {
+	for (var i = 0; i < m; i++) {
 		fieldHasher[i] = CredentialLeafHasher();
 		fieldHasher[i].key <== fields[i][0];
 		fieldHasher[i].value <== fields[i][1];
