@@ -2,4 +2,4 @@ pragma circom 2.0.4;
 
 include "score.circom";
 
-component main {public [root, requiredTags, weights, result]} = Score(5, 4, 12);
+component main {public [certreeRoot, requiredTags, weights, result]} = Score(0, 1, 2, 5, 4, 12);
