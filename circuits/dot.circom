@@ -1,5 +1,7 @@
 pragma circom 2.0.4;
 
+// @param `n` is the number of elements.
+// Must be the same for both inputs.
 template DotProduct(n) {
 	signal input a[n];
 	signal input b[n];

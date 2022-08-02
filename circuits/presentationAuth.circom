@@ -5,6 +5,7 @@ include "commit.circom";
 include "merkleProof.circom";
 
 // Verifies the authenticity of a given credential and if exists in the certree.
+// @param `levels` is the number of levels in the certree
 template VerifyPresentationAuth(levels) {
 	signal input certreeRoot;
 	signal input nullifierHash;

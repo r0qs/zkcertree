@@ -67,7 +67,9 @@ template Compare() {
 	mux.out ==> out;
 }
 
-// Verifies whether a field in a credential met a conditional criteria
+// Verifies whether a field in a credential met a conditional
+// @param `cdl` is the level of the credential tree
+// @param `ctl` is the level of the certree
 template VerifyConditionalQueryField(cdl, ctl) {
 	signal input certreeRoot;
 	signal input nullifierHash;
@@ -112,12 +114,17 @@ template VerifyConditionalQueryField(cdl, ctl) {
 	cmp.out === 1;
 }
 
-// Verifies whether a field in all credentials met a conditional criteria
+// Verifies whether a field in all credentials met a conditional
+// @param `n` is the number of credentials to be verified
+// @param `cdl` is the level of the credential tree
+// @param `ctl` is the level of the certree
 template VerifyConditionalQueryCredentials(n, cdl, ctl) {
 	signal input certreeRoot;
 	signal input fieldKey;
 	signal input criterion;
 	signal input operator;
+
+	// TODO: assert max n based on ctl?
 
 	signal input nullifierHashes[n];
 	signal input fields[n][3];

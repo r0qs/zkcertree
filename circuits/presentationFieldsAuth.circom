@@ -6,8 +6,8 @@ include "merkleProof.circom";
 
 // Verifies if a crendential's field is included in the credtree and
 // if it has an authentic commitment in the certree.
-// @param ctl is the level of the certree
-// @param cdl is the level of the credential tree
+// @param `cdl` is the level of the credential tree
+// @param `ctl` is the level of the certree
 template VerifyCredentialField(cdl, ctl) {
 	signal input fieldKey;
 	signal input certreeRoot;
@@ -62,8 +62,8 @@ template VerifyCredentialField(cdl, ctl) {
 
 // Verifies that up to n fields are included in the credtree and are part
 // of authentic commitments in the certree.
-// @param ctl is the level of the certree
-// @param cdl is the level of the credential tree
+// @param `cdl` is the level of the credential tree
+// @param `ctl` is the level of the certree
 // TODO: receive credential schema root and check against field keys.
 template VerifyCredentialMultiField(cdl, ctl) {
 	signal input certreeRoot;

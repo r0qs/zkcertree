@@ -1,13 +1,14 @@
+// The MerkleProof is taken from https://github.com/tornadocash/tornado-nova/tree/master/circuits
 pragma circom 2.0.4;
 
 include "../node_modules/circomlib/circuits/bitify.circom";
 include "../node_modules/circomlib/circuits/poseidon.circom";
 include "../node_modules/circomlib/circuits/switcher.circom";
 
-// The MerkleProof is taken from https://github.com/tornadocash/tornado-nova/tree/master/circuits
 // Compute that merkle root for given the merkle proof and leaf.
-// pathIndices bits is an array of 0/1 selectors telling whether given
-// pathElement is on the left or right side of merkle path.
+// Note:
+// - pathIndices bits is an array of 0/1 selectors telling whether given
+// - pathElement is on the left or right side of merkle path.
 template MerkleProof(levels) {
 	signal input leaf;
 	signal input pathElements[levels];
@@ -45,6 +46,7 @@ function isKnownIndex(idx, neighborhood, n) {
 }
 
 // Compute hashes of the next tree layer
+// @param `height` is the layer height
 template TreeLayer(height) {
 	var nItems = 1 << height;
 	signal input indices[nItems * 2];
@@ -136,6 +138,7 @@ template TreeLayer(height) {
 }
 
 // Compute that merkle root for given the merkle multiproof and leaves array.
+// @param `levels` is the number of levels of the tree
 template MerkleMultiProof(levels) {
 	var nItems = 1 << levels;
 	signal input leaves[nItems];

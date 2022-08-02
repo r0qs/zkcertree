@@ -5,6 +5,7 @@ include "merkleProof.circom";
 
 // Verifies that a commitment of a given secret and nullifier
 // is included in the merkle tree of registered commitments.
+// @param `levels` is the number of levels of the tree
 template Approve(levels) {
 	signal input root;
 	signal input nullifierHash;
