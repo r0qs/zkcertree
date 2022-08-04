@@ -51,7 +51,7 @@ template TimeframeProof(n, cdl, ctl) {
 		}
 	}
 
-	// ensures incremental timestamp constraint and compute total duration (i.e. t[n-1]-t[0])
+	// ensures incremental timestamp constraint and total duration (i.e. t[n-1]-t[0])
 	var totalDuration = 0;
 	for (var i = 0; i < n-1; i++) {
 		var d = fields[i+1][1] - fields[i][1];
