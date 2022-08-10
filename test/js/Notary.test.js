@@ -148,6 +148,13 @@ describe('PrivateNotary', function () {
 			await expect(pvtNotaryImpl.connect(multisig).issue(commitment))
 				.to.be.revertedWith("Commitment already registered")
 		})
+
+		it('should only accept non-trivial commitments', async () => {
+			const { pvtNotaryImpl, multisig } = await loadFixture(fixture)
+
+			await expect(pvtNotaryImpl.connect(multisig).issue(toFixedHex(0)))
+				.to.be.revertedWith("Invalid commitment")
+		})
 	})
 
 	describe('#approve', () => {

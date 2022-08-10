@@ -52,6 +52,7 @@ abstract contract Notary is MerkleTreeWithHistory {
      * Poseidon(nullifier + subject + secret)
      */
     function issue(bytes32 _commitment) public onlyMultisig {
+        require(_commitment != bytes32(0), "Invalid commitment");
         require(!commitments[_commitment], "Commitment already registered");
 
         uint32 insertedIndex = _insert(_commitment);

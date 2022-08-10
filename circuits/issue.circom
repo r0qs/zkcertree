@@ -1,5 +1,6 @@
 pragma circom 2.0.4;
 
+include "../node_modules/circomlib/circuits/comparators.circom";
 include "../node_modules/circomlib/circuits/eddsaposeidon.circom";
 include "commit.circom";
 
@@ -16,6 +17,11 @@ template Issue() {
 	for (var i = 0; i < 2; i++) {
 		subject.publicKey[i] <== publicKey[i];
 	}
+
+	// Ensures a commitment is not zero
+	component zero = IsZero();
+	zero.in <== commitment;
+	zero.out === 0;
 
 	component hasher = CommitmentHasher();
 	hasher.nullifier <== credentialRoot;
