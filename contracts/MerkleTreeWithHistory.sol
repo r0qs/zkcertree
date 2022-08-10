@@ -8,7 +8,7 @@ interface IHasher {
 }
 
 contract MerkleTreeWithHistory {
-    uint256 public constant FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
+    uint256 public constant SCALAR_FIELD_SIZE = 21888242871839275222246405745257275088548364400416034343698204186575808495617;
     uint256 public constant ZERO_VALUE = 0;
 
     IHasher public immutable hasher;
@@ -38,8 +38,8 @@ contract MerkleTreeWithHistory {
      * @return Poseidon(_left, _right)
      */
     function hashLeftRight(bytes32 _left, bytes32 _right) public view returns (bytes32) {
-        require(uint256(_left) < FIELD_SIZE, "_left should be inside the field");
-        require(uint256(_right) < FIELD_SIZE, "_right should be inside the field");
+        require(uint256(_left) < SCALAR_FIELD_SIZE, "_left should be inside the field");
+        require(uint256(_right) < SCALAR_FIELD_SIZE, "_right should be inside the field");
         bytes32[2] memory input;
         input[0] = _left;
         input[1] = _right;

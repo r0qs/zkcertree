@@ -86,6 +86,12 @@ abstract contract Notary is MerkleTreeWithHistory {
         pubSignals[0] = uint256(_root);
         pubSignals[1] = uint256(_nullifierHash);
         pubSignals[2] = uint256(uint160(msg.sender));
+
+        // Ensure that every input must be less than the snark scalar field
+        // This is already checked in the verifiers' code, but we are failing fast here before attempting to verify the proof.
+        for (uint256 i = 0; i < pubSignals.length; i++) {
+            require(pubSignals[i] < SCALAR_FIELD_SIZE, "Input too large");
+        }
         require(verifier.verifyProof(_proof, pubSignals), "Invalid issuance proof");
 
         nullifierHashes[_nullifierHash] = CredentialState(true, false);

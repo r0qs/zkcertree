@@ -6,7 +6,7 @@ const { MerkleTree } = require('fixed-merkle-tree')
 const { toFixedHex, deploy } = require('../../src/utils')
 const Poseidon = require('../../src/poseidon')
 
-const DEFAULT_ZERO_VALUE = 0
+const ZERO_VALUE = 0
 const MERKLE_TREE_HEIGHT = 5
 
 describe('MerkleTreeWithHistory', function () {
@@ -24,7 +24,7 @@ describe('MerkleTreeWithHistory', function () {
     return poseidonHash([a, b])
   }
 
-  function getNewTree(tree_height = MERKLE_TREE_HEIGHT, zero = DEFAULT_ZERO_VALUE) {
+  function getNewTree(tree_height = MERKLE_TREE_HEIGHT, zero = ZERO_VALUE) {
     return new MerkleTree(tree_height, [], { hashFunction: poseidonHash2, zeroElement: zero })
   }
 
@@ -127,7 +127,7 @@ describe('MerkleTreeWithHistory', function () {
       // initial subtree should be zero
       let subtree0 = await mtContract.filledSubtrees(0)
       let subtree1 = await mtContract.filledSubtrees(1)
-      expect(subtree0).to.equal(toFixedHex(DEFAULT_ZERO_VALUE))
+      expect(subtree0).to.equal(toFixedHex(ZERO_VALUE))
       expect(subtree1).to.equal(toFixedHex(poseidonHash2(0, 0)))
       let nextIdx = await mtContract.nextIndex()
       expect(nextIdx).to.equal(0)

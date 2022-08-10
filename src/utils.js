@@ -9,7 +9,7 @@ const { unstringifyBigInts } = require('ffjavascript').utils
 // TODO: load from config
 const MERKLE_TREE_HEIGHT = process.env.MERKLE_TREE_HEIGHT || 12
 const ZERO_VALUE = process.env.ZERO_VALUE || 0
-const FIELD_SIZE = BigNumber.from(
+const SCALAR_FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617',
 )
 
@@ -80,7 +80,7 @@ function bitArrayToDecimal(array) {
 
 module.exports = {
   MERKLE_TREE_HEIGHT,
-  FIELD_SIZE,
+  SCALAR_FIELD_SIZE,
   randomBN,
   toFixedHex,
   toBuffer,

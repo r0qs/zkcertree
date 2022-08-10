@@ -7,7 +7,7 @@ const { plonk } = require('snarkjs')
 const { buildEddsa } = require('circomlibjs')
 const { MerkleTree } = require('fixed-merkle-tree')
 const {
-	FIELD_SIZE,
+	SCALAR_FIELD_SIZE,
 	deploy,
 	randomBN,
 	toFixedHex } = require('../../src/utils')
@@ -96,7 +96,7 @@ describe('PrivateNotary', function () {
 			expect(await pvtNotaryImpl.getLastRoot()).to.equal(toFixedHex(tree.root))
 			expect(await pvtNotaryImpl.levels()).to.equal(MERKLE_TREE_HEIGHT)
 			expect(await pvtNotaryImpl.levels()).to.equal(tree.levels)
-			expect(await pvtNotaryImpl.FIELD_SIZE()).to.equal(FIELD_SIZE)
+			expect(await pvtNotaryImpl.SCALAR_FIELD_SIZE()).to.equal(SCALAR_FIELD_SIZE)
 			expect(await pvtNotaryImpl.ZERO_VALUE()).to.equal(ZERO_VALUE)
 		})
 	})
