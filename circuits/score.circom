@@ -71,6 +71,7 @@ template Score(tagIdx, gradeIdx, m, n, cdl, ctl) {
 	for (var i = 0; i < n; i++) {
 		dot.a[i] <== fields[i][gradeIdx][1];
 		dot.b[i] <== weights[i];
+		//FIXME: we must also range check each intermediary result to ensure that the sum does not wrap around.
 	}
 	dot.out === result;
 }
