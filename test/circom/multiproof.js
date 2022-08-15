@@ -5,21 +5,17 @@ const { MerkleTree } = require('fixed-merkle-tree')
 const Poseidon = require('../../src/poseidon')
 
 const ZERO_VALUE = 0
-const MERKLE_TREE_HEIGHT = 12
+const CERT_TREE_HEIGHT = 8
 
 describe("Multiproof circuit", function () {
 	this.timeout(25000)
 	let circuit
 
-	function poseidonHash(items) {
-		return poseidon.hash(items)
-	}
-
 	function poseidonHash2(a, b) {
-		return poseidonHash([a, b])
+		return poseidon.hash([a, b])
 	}
 
-	function getNewTree(leaves = [], tree_height = MERKLE_TREE_HEIGHT, zero = ZERO_VALUE) {
+	function getNewTree(leaves = [], tree_height = CERT_TREE_HEIGHT, zero = ZERO_VALUE) {
 		return new MerkleTree(tree_height, leaves, { hashFunction: poseidonHash2, zeroElement: zero })
 	}
 
