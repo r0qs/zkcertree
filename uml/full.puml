@@ -17,10 +17,10 @@ participant "Verifier" as  Verifier
 
 !include certree.puml!Registration
 !include certree.puml!Approval
-' !include certree.puml!Revocation
+!include certree.puml!Revocation
 !include certree.puml!PresentationAuth
 !include certree.puml!PresentationConditionalQuery
-' !include certree.puml!PresentationRange
-' !include certree.puml!PresentationScore
+!include certree.puml!PresentationTimeframe
+!include certree.puml!PresentationScore
 
 @enduml
