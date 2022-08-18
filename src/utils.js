@@ -8,10 +8,10 @@ const { unstringifyBigInts } = require('ffjavascript').utils
 
 // TODO: load from config
 const MERKLE_TREE_HEIGHT = process.env.MERKLE_TREE_HEIGHT || 12
-const ZERO_VALUE = process.env.ZERO_VALUE || 0
 const SCALAR_FIELD_SIZE = BigNumber.from(
   '21888242871839275222246405745257275088548364400416034343698204186575808495617',
 )
+const ZERO_VALUE = process.env.ZERO_VALUE || zeroValue("zkcertree")
 
 const randomBN = (length = 32) => BigNumber.from(crypto.randomBytes(length))
 
@@ -78,7 +78,16 @@ function bitArrayToDecimal(array) {
   return parseInt(array.reverse().join(""), 2)
 }
 
+// Returns the zero value of the form: keccak256(string_value) % SCALAR_FIELD_SIZE
+function zeroValue(input) {
+  const abi = new ethers.utils.AbiCoder()
+  const encodedData = abi.encode(["string"], [input])
+  const hash = ethers.utils.keccak256(encodedData)
+  return BigNumber.from(hash).mod(SCALAR_FIELD_SIZE).toString()
+}
+
 module.exports = {
+  ZERO_VALUE,
   MERKLE_TREE_HEIGHT,
   SCALAR_FIELD_SIZE,
   randomBN,

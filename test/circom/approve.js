@@ -6,11 +6,11 @@ const { MerkleTree } = require('fixed-merkle-tree')
 const { BigNumber } = require('hardhat').ethers
 
 const {
+	ZERO_VALUE,
 	randomBN,
 	bitArrayToDecimal
 } = require('../../src/utils')
 
-const ZERO_VALUE = 0
 const CERT_TREE_HEIGHT = 8
 
 describe("Approve circuit", function () {

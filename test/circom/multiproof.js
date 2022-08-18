@@ -3,8 +3,8 @@ const { stringifyBigInts } = require('ffjavascript').utils
 const wasm_tester = require("circom_tester").wasm
 const { MerkleTree } = require('fixed-merkle-tree')
 const Poseidon = require('../../src/poseidon')
+const { ZERO_VALUE } = require('../../src/utils')
 
-const ZERO_VALUE = 0
 const CERT_TREE_HEIGHT = 8
 
 describe("Multiproof circuit", function () {

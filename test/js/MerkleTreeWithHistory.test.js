@@ -1,12 +1,14 @@
 const hre = require('hardhat')
-const { ethers, waffle } = hre
+const { waffle } = hre
 const { loadFixture } = waffle
 const { expect } = require('chai')
 const { MerkleTree } = require('fixed-merkle-tree')
-const { toFixedHex, deploy } = require('../../src/utils')
+const {
+  ZERO_VALUE,
+  deploy,
+  toFixedHex } = require('../../src/utils')
 const Poseidon = require('../../src/poseidon')
 
-const ZERO_VALUE = 0
 const MERKLE_TREE_HEIGHT = 5
 
 describe('MerkleTreeWithHistory', function () {
@@ -30,7 +32,7 @@ describe('MerkleTreeWithHistory', function () {
 
   function computeZeroHashes(tree_height = MERKLE_TREE_HEIGHT) {
     let zero_hashes = []
-    zero_hashes[0] = 0
+    zero_hashes[0] = ZERO_VALUE
     for (h = 0; h < tree_height; h++) {
       zero_hashes[h + 1] = poseidonHash2(zero_hashes[h], zero_hashes[h])
     }
@@ -128,7 +130,7 @@ describe('MerkleTreeWithHistory', function () {
       let subtree0 = await mtContract.filledSubtrees(0)
       let subtree1 = await mtContract.filledSubtrees(1)
       expect(subtree0).to.equal(toFixedHex(ZERO_VALUE))
-      expect(subtree1).to.equal(toFixedHex(poseidonHash2(0, 0)))
+      expect(subtree1).to.equal(toFixedHex(poseidonHash2(ZERO_VALUE, ZERO_VALUE)))
       let nextIdx = await mtContract.nextIndex()
       expect(nextIdx).to.equal(0)
 
@@ -138,7 +140,7 @@ describe('MerkleTreeWithHistory', function () {
       subtree1 = await mtContract.filledSubtrees(1)
       nextIdx = await mtContract.nextIndex()
       expect(subtree0).to.equal(toFixedHex(123))
-      expect(subtree1).to.equal(toFixedHex(poseidonHash2(123, 0)))
+      expect(subtree1).to.equal(toFixedHex(poseidonHash2(123, ZERO_VALUE)))
       expect(nextIdx).to.equal(1)
       tree.insert(123)
       expect(toFixedHex(tree.root)).to.equal(await mtContract.getLastRoot())

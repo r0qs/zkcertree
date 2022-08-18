@@ -7,6 +7,7 @@ const { plonk } = require('snarkjs')
 const { buildEddsa } = require('circomlibjs')
 const { MerkleTree } = require('fixed-merkle-tree')
 const {
+	ZERO_VALUE,
 	SCALAR_FIELD_SIZE,
 	deploy,
 	randomBN,
@@ -15,7 +16,6 @@ const Poseidon = require('../../src/poseidon')
 const IssueProver = require('../../src/issue')
 const ApproveProver = require('../../src/approve')
 
-const ZERO_VALUE = 0
 const MERKLE_TREE_HEIGHT = 12
 
 describe('PrivateNotary', function () {
