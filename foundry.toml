@@ -4,4 +4,5 @@ test = "test/foundry"
 cache_path  = 'forge-cache'
 out = "artifacts/forge"
 libs = ["lib"]
+gas_reports = ["*"]
 solc_version = "0.8.13"
