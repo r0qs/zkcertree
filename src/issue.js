@@ -1,28 +1,29 @@
 const path = require('path')
+const { readFileSync } = require('fs')
 const assert = require('assert')
 const { plonk } = require('snarkjs')
-const { stringifyBigInts, unstringifyBigInts } = require('ffjavascript').utils
+const { stringifyBigInts } = require('ffjavascript').utils
 const { buildEddsa } = require('circomlibjs')
 const { prepareSolidityCallData } = require('./utils')
 
 class IssueProver {
 	wasmFile
 	zKeyFile
-	vKey
+	vKeyFile
 	eddsa
 
-	constructor(wasmFile, zKeyFile, vKey, eddsa) {
+	constructor(wasmFile, zKeyFile, vKeyFile, eddsa) {
 		this.wasmFile = wasmFile
 		this.zKeyFile = zKeyFile
-		this.vKey = unstringifyBigInts(vKey)
+		this.vKeyFile = vKeyFile
 		this.eddsa = eddsa
 	}
 
 	static async initialize(
 		wasmFile = path.resolve(__dirname, "../build/issue/issue.wasm"),
 		zKeyFile = path.resolve(__dirname, "../build/issue/issue.zkey"),
-		vKey = require('../build/issue/verification_key.json')) {
-		return new IssueProver(wasmFile, zKeyFile, vKey, await buildEddsa())
+		vKeyFile = path.resolve(__dirname, "../build/issue/verification_key.json")) {
+		return new IssueProver(wasmFile, zKeyFile, vKeyFile, await buildEddsa())
 	}
 
 	prepareInputs(credential, signature, publicKey) {
@@ -64,7 +65,7 @@ class IssueProver {
 	}
 
 	verificationKey() {
-		return this.vKey
+		return JSON.parse(readFileSync(this.vKeyFile).toString())
 	}
 }
 

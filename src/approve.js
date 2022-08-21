@@ -1,9 +1,10 @@
 const path = require('path')
+const { readFileSync } = require('fs')
 const assert = require('assert')
 const { ethers } = require('hardhat')
 const { BigNumber } = ethers
 const { plonk } = require('snarkjs')
-const { stringifyBigInts, unstringifyBigInts } = require('ffjavascript').utils
+const { stringifyBigInts } = require('ffjavascript').utils
 const {
 	toFixedHex,
 	bitArrayToDecimal,
@@ -13,19 +14,19 @@ const {
 class ApproveProver {
 	wasmFile
 	zKeyFile
-	vKey
+	vKeyFile
 
-	constructor(wasmFile, zKeyFile, vKey) {
+	constructor(wasmFile, zKeyFile, vKeyFile) {
 		this.wasmFile = wasmFile
 		this.zKeyFile = zKeyFile
-		this.vKey = unstringifyBigInts(vKey)
+		this.vKeyFile = vKeyFile
 	}
 
 	static async initialize(
 		wasmFile = path.resolve(__dirname, "../build/approve12/approve12.wasm"),
 		zKeyFile = path.resolve(__dirname, "../build/approve12/approve12.zkey"),
-		vKey = require('../build/approve12/verification_key.json')) {
-		return new ApproveProver(wasmFile, zKeyFile, vKey)
+		vKeyFile = path.resolve(__dirname, "../build/approve12/verification_key.json")) {
+		return new ApproveProver(wasmFile, zKeyFile, vKeyFile)
 	}
 
 	async generateSnarkProofFromContract(notary, hashFn, sender, credential) {
@@ -68,7 +69,7 @@ class ApproveProver {
 	}
 
 	verificationKey() {
-		return this.vKey
+		return JSON.parse(readFileSync(this.vKeyFile).toString())
 	}
 }
 
