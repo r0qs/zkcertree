@@ -16,13 +16,13 @@ const ZERO_VALUE = process.env.ZERO_VALUE || zeroValue("zkcertree")
 const randomBN = (length = 32) => BigNumber.from(crypto.randomBytes(length))
 
 // BigNumber to hex string of specified length
-const toFixedHex = (number, length = 32) => {
+function toFixedHex(number, length = 32) {
   const str = number instanceof Buffer ? number.toString('hex') : BigNumber.from(number).toHexString().replace('0x', '')
   return '0x' + str.padStart(length * 2, '0')
 }
 
 // Convert bigint value into buffer of specified byte length
-const toBuffer = (value, length) =>
+function toBuffer(value, length) {
   Buffer.from(
     BigNumber.from(value)
       .toHexString()
@@ -30,6 +30,7 @@ const toBuffer = (value, length) =>
       .padStart(length * 2, '0'),
     'hex',
   )
+}
 
 async function deploy(contractName, ...args) {
   const Factory = await ethers.getContractFactory(contractName)
@@ -74,8 +75,17 @@ async function prepareSolidityCallData(proofData, publicSignals) {
 
 // Converts a bit array to decimal
 function bitArrayToDecimal(array) {
+  const arr = [...array]
   // TODO: ensure that array contains only 0 or 1
-  return parseInt(array.reverse().join(""), 2)
+  return parseInt(arr.reverse().join(""), 2)
+}
+
+function bufferToBigIntField(buf) {
+  let n = BigNumber.from(buf)
+  if (n > SCALAR_FIELD_SIZE) {
+    n = n.mod(SCALAR_FIELD_SIZE);
+  }
+  return n.toBigInt()
 }
 
 // Returns the zero value of the form: keccak256(string_value) % SCALAR_FIELD_SIZE
@@ -86,6 +96,18 @@ function zeroValue(input) {
   return BigNumber.from(hash).mod(SCALAR_FIELD_SIZE).toString()
 }
 
+function prepareCertreeProofInputs(certree, credentials) {
+  const certProofs = []
+  for (let i = 0; i < credentials.length; i++) {
+    let p = certree.proof(credentials[i].commitment)
+    certProofs[i] = {
+      pathCertreeElements: [...p.pathElements],
+      pathCertreeIndices: bitArrayToDecimal(p.pathIndices).toString()
+    }
+  }
+  return certProofs
+}
+
 module.exports = {
   ZERO_VALUE,
   MERKLE_TREE_HEIGHT,
@@ -93,8 +115,10 @@ module.exports = {
   randomBN,
   toFixedHex,
   toBuffer,
+  bufferToBigIntField,
   deploy,
   buildMerkleTree,
+  prepareCertreeProofInputs,
   generateMerkleProof,
   generateMerkleMultiProof,
   prepareSolidityCallData,
