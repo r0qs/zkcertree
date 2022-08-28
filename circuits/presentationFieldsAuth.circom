@@ -99,13 +99,20 @@ template VerifyCredentialMultiField(cdl, ctl) {
 
 	// Verify whether the fields exists in the credential tree
 	component fieldHasher[m];
+	component zero[m];
 	component credtree = MerkleMultiProof(cdl);
+	signal s[m];
 	for (var i = 0; i < m; i++) {
+		zero[i] = IsZero();
+		zero[i].in <== fields[i][0];
+		s[i] <== 1 - zero[i].out;
+
 		fieldHasher[i] = CredentialLeafHasher();
 		fieldHasher[i].key <== fields[i][0];
 		fieldHasher[i].value <== fields[i][1];
 		fieldHasher[i].salt <== fields[i][2];
-		credtree.leaves[i] <== fieldHasher[i].out;
+
+		credtree.leaves[i] <== (fieldHasher[i].out)*s[i];
 		credtree.pathElements[i] <== pathFieldElements[i];
 		credtree.leafIndices[i] <== fieldIndices[i];
 	}

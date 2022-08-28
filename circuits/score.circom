@@ -6,9 +6,8 @@ include "presentationFieldsAuth.circom";
 
 // Verifies whether all credentials exists in the certree and
 // that each credential's field exists in the correspondent credential tree using merkle multiproof
-// @param `tagIdx` is the index of the tag Field in the credential
 // @param `gradeIdx` is the index of the grade Field in the credential
-// @param `m` is the number of leaves/fields to be proved in each credential tree (precise-proof)
+// @param `tagIdx` is the index of the tag Field in the credential
 // @param `n` is the number of credentials to be verified
 // @param `cdl` is the level of the credential tree
 // @param `ctl` is the level of the certree
@@ -16,18 +15,17 @@ include "presentationFieldsAuth.circom";
 // - each leave of the certree contains a commitment to a credential tree root
 // - currently m must be the same for all credentials in the certree
 // - each leave of a credential tree has 3 fields: key, value and salt
-template Score(tagIdx, gradeIdx, m, n, cdl, ctl) {
-	assert(m > 1);
-
+template Score(gradeIdx, tagIdx, n, cdl, ctl) {
 	signal input certreeRoot;
 	signal input requiredTags[n];
 	signal input weights[n];
 	signal input result;
 
-	signal input nullifierHashes[n];
+	var m = 1 << cdl;
 	signal input fields[n][m][3];
 	signal input pathFieldElements[n][m];
 	signal input fieldIndices[n][m];
+	signal input nullifierHashes[n];
 	signal input credentialRoots[n];
 	signal input subjects[n];
 	signal input secrets[n];
@@ -44,7 +42,7 @@ template Score(tagIdx, gradeIdx, m, n, cdl, ctl) {
 		credAuth[i].certreeRoot <== certreeRoot;
 		credAuth[i].nullifierHash <== nullifierHashes[i];
 
-		// ensure tags match 
+		// ensure tags match
 		sameTags[i] = IsEqual();
 		sameTags[i].in[0] <== requiredTags[i];
 		sameTags[i].in[1] <== fields[i][tagIdx][1];
