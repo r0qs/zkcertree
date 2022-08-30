@@ -3,6 +3,7 @@ const crypto = require('crypto')
 const { ethers } = require('hardhat')
 const { BigNumber } = ethers
 const { MerkleTree } = require('fixed-merkle-tree')
+const { DocumentTree } = require('document-tree')
 const { plonk } = require('snarkjs')
 const { unstringifyBigInts } = require('ffjavascript').utils
 
@@ -14,6 +15,17 @@ const SCALAR_FIELD_SIZE = BigNumber.from(
 const ZERO_VALUE = process.env.ZERO_VALUE || zeroValue("zkcertree")
 
 const randomBN = (length = 32) => BigNumber.from(crypto.randomBytes(length))
+
+function randomDoc(issuer, subject, period = 0) {
+  return {
+    grade: Math.floor(Math.random() * 100),
+    tag: Math.random().toString(16).substring(2, 8),
+    subject: subject,
+    issuer: issuer,
+    reference: toFixedHex(randomBN()), // storage chunk reference
+    timestamp: setDate(period).getTime() // in millisecond
+  }
+}
 
 // BigNumber to hex string of specified length
 function toFixedHex(number, length = 32) {
@@ -73,6 +85,36 @@ async function prepareSolidityCallData(proofData, publicSignals) {
   }
 }
 
+function prepareCertreeProofInputs(certree, credentials) {
+  const certProofs = []
+  for (let i = 0; i < credentials.length; i++) {
+    let p = certree.proof(credentials[i].commitment)
+    certProofs[i] = {
+      pathCertreeElements: [...p.pathElements],
+      pathCertreeIndices: bitArrayToDecimal(p.pathIndices).toString()
+    }
+  }
+  return certProofs
+}
+
+function createDocumentTree(document, hashFunction, leafHashFunction) {
+  let doctree = new DocumentTree({
+    zero: ZERO_VALUE,
+    hashFunction: hashFunction,
+    leafHashFunction: leafHashFunction
+  })
+  doctree.addLeavesFromDocument(document)
+  return doctree
+}
+
+function generateDocuments(n, issuer, subject, hashFunction, leafHashFunction) {
+  let docs = []
+  for (let i = 0; i < n; i++) {
+    docs.push(createDocumentTree(randomDoc(issuer, subject, i*10), hashFunction, leafHashFunction))
+  }
+  return docs
+}
+
 // Converts a bit array to decimal
 function bitArrayToDecimal(array) {
   const arr = [...array]
@@ -96,16 +138,17 @@ function zeroValue(input) {
   return BigNumber.from(hash).mod(SCALAR_FIELD_SIZE).toString()
 }
 
-function prepareCertreeProofInputs(certree, credentials) {
-  const certProofs = []
-  for (let i = 0; i < credentials.length; i++) {
-    let p = certree.proof(credentials[i].commitment)
-    certProofs[i] = {
-      pathCertreeElements: [...p.pathElements],
-      pathCertreeIndices: bitArrayToDecimal(p.pathIndices).toString()
-    }
-  }
-  return certProofs
+function setDate(period) {
+  let date = new Date()
+  date.setDate(date.getDate() + period)
+  return date
+}
+
+function weightedSum(elements, weights) {
+  return elements.reduce((sum, e, i) => {
+    sum += e * weights[i]
+    return sum
+  }, 0)
 }
 
 module.exports = {
@@ -119,8 +162,10 @@ module.exports = {
   deploy,
   buildMerkleTree,
   prepareCertreeProofInputs,
+  generateDocuments,
   generateMerkleProof,
   generateMerkleMultiProof,
   prepareSolidityCallData,
-  bitArrayToDecimal
+  bitArrayToDecimal,
+  weightedSum
 }

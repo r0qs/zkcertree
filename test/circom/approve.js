@@ -1,9 +1,9 @@
 const path = require("path")
 const assert = require('assert')
 const wasm_tester = require("circom_tester").wasm
-const { buildEddsa, buildPoseidonReference } = require('circomlibjs')
+const { buildEddsa } = require('circomlibjs')
 const { MerkleTree } = require('fixed-merkle-tree')
-const { BigNumber } = require('hardhat').ethers
+const Poseidon = require('../../src/poseidon')
 
 const {
 	ZERO_VALUE,
@@ -17,12 +17,12 @@ describe("Approve circuit", function () {
 	this.timeout(25000)
 	let circuit, eddsa, poseidon, credential
 
-	function poseidonHash(items) {
-		return poseidon.F.toString(poseidon(items.map((x) => BigNumber.from(x).toBigInt())))
+	function poseidonHash2(a, b) {
+		return poseidon.hash([a, b])
 	}
 
-	function poseidonHash2(a, b) {
-		return poseidonHash([a, b])
+	function poseidonHash(items) {
+		return poseidon.hash(items)
 	}
 
 	function getNewTree(leaves = [], tree_height = CERT_TREE_HEIGHT, zero = ZERO_VALUE) {
@@ -31,7 +31,7 @@ describe("Approve circuit", function () {
 
 	function createCredential(secret, publicKey, root) {
 		let credential = { secret, root }
-		credential.subject = poseidonHash2(eddsa.F.toObject(publicKey[0]), eddsa.F.toObject(publicKey[1]))
+		credential.subject = poseidonHash([eddsa.F.toObject(publicKey[0]), eddsa.F.toObject(publicKey[1])])
 		credential.commitment = poseidonHash([credential.root, credential.subject, credential.secret])
 		credential.nullifierHash = poseidonHash([credential.root])
 		return credential
@@ -39,8 +39,8 @@ describe("Approve circuit", function () {
 
 	before(async () => {
 		circuit = await wasm_tester(path.join(__dirname, "circuits", "approve_test.circom"))
+		poseidon = await Poseidon.initialize()
 		eddsa = await buildEddsa()
-		poseidon = await buildPoseidonReference()
 
 		const secret = randomBN().toString()
 		const credentialRoot = randomBN().toString()

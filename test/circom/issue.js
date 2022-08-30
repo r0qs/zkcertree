@@ -1,11 +1,10 @@
-const path = require("path")
 const assert = require('assert')
 const wasm_tester = require("circom_tester").wasm
-const { buildEddsa, buildPoseidonReference } = require('circomlibjs')
-const { BigNumber } = require('hardhat').ethers
+const { buildEddsa } = require('circomlibjs')
+const Poseidon = require('../../src/poseidon')
 
 const {
-	randomBN,
+	randomBN
 } = require('../../src/utils')
 
 describe("Issue circuit", function () {
@@ -14,16 +13,12 @@ describe("Issue circuit", function () {
 	let secret, credentialRoot, privateKey
 
 	function poseidonHash(items) {
-		return poseidon.F.toString(poseidon(items.map((x) => BigNumber.from(x).toBigInt())))
-	}
-
-	function poseidonHash2(a, b) {
-		return poseidonHash([a, b])
+		return poseidon.hash(items)
 	}
 
 	function createCredential(secret, publicKey, root) {
 		let credential = { secret, root }
-		credential.subject = poseidonHash2(eddsa.F.toObject(publicKey[0]), eddsa.F.toObject(publicKey[1]))
+		credential.subject = poseidonHash([eddsa.F.toObject(publicKey[0]), eddsa.F.toObject(publicKey[1])])
 		credential.commitment = poseidonHash([credential.root, credential.subject, credential.secret])
 		credential.nullifierHash = poseidonHash([credential.root])
 		return credential
@@ -31,8 +26,9 @@ describe("Issue circuit", function () {
 
 	before(async () => {
 		circuit = await wasm_tester("./circuits/issue.circom")
+		poseidon = await Poseidon.initialize()
 		eddsa = await buildEddsa()
-		poseidon = await buildPoseidonReference()
+
 		secret = randomBN().toString()
 		credentialRoot = randomBN().toString()
 		privateKey = randomBN().toString()

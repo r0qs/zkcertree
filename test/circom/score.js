@@ -4,7 +4,7 @@ const { buildEddsa } = require('circomlibjs')
 const { utils } = require('ffjavascript')
 const wasm_tester = require("circom_tester").wasm
 const { MerkleTree } = require('fixed-merkle-tree')
-const { DocumentTree, toBuffer } = require('document-tree')
+const { toBuffer } = require('document-tree')
 
 const Poseidon = require('../../src/poseidon')
 const {
@@ -12,7 +12,9 @@ const {
 	randomBN,
 	toFixedHex,
 	prepareCertreeProofInputs,
-	bufferToBigIntField
+	bufferToBigIntField,
+	generateDocuments,
+	weightedSum
 } = require("../../src/utils")
 
 CERT_TREE_HEIGHT = 8
@@ -22,7 +24,6 @@ describe("Score circuit", function () {
 	this.timeout(25000)
 	let circuit, poseidon
 
-	// TODO: move to utils
 	function poseidonHash2(a, b) {
 		return poseidon.hash([a, b])
 	}
@@ -33,6 +34,15 @@ describe("Score circuit", function () {
 
 	function getNewCertree(leaves = [], tree_height = CERT_TREE_HEIGHT, zero = ZERO_VALUE) {
 		return new MerkleTree(tree_height, leaves, { hashFunction: poseidonHash2, zeroElement: zero })
+	}
+
+	// FIXME: dry
+	function createCredential(secret, publicKey, root) {
+		let credential = { secret, root }
+		credential.subject = poseidonHash([eddsa.F.toObject(publicKey[0]), eddsa.F.toObject(publicKey[1])])
+		credential.commitment = poseidonHash([credential.root, credential.subject, credential.secret])
+		credential.nullifierHash = poseidonHash([credential.root])
+		return credential
 	}
 
 	function prepareCredInputs(n, proofFieldKeys, credtreeHeight, doctrees) {
@@ -79,51 +89,6 @@ describe("Score circuit", function () {
 		})
 	}
 
-	function createDocumentTree(document) {
-		let doctree = new DocumentTree({
-			zero: ZERO_VALUE,
-			hashFunction: poseidonHash2,
-			leafHashFunction: poseidonHash
-		})
-		doctree.addLeavesFromDocument(document)
-		return doctree
-	}
-
-	function randomDoc(issuer, subject) {
-		return {
-			grade: Math.floor(Math.random() * 100),
-			tag: Math.random().toString(16).substring(2, 8),
-			subject: subject,
-			issuer: issuer,
-			reference: toFixedHex(randomBN()), // storage chunk reference
-			timestamp: Math.floor(new Date().getTime() / 1000)
-		}
-	}
-
-	function generateDocuments(n, issuer, subject) {
-		let docs = []
-		for (let i = 0; i < n; i++) {
-			docs.push(createDocumentTree(randomDoc(issuer, subject)))
-		}
-		return docs
-	}
-
-	// FIXME: dry
-	function createCredential(secret, publicKey, root) {
-		let credential = { secret, root }
-		credential.subject = poseidonHash2(eddsa.F.toObject(publicKey[0]), eddsa.F.toObject(publicKey[1]))
-		credential.commitment = poseidonHash([credential.root, credential.subject, credential.secret])
-		credential.nullifierHash = poseidonHash([credential.root])
-		return credential
-	}
-
-	function weightedSum(elements, weights) {
-		return elements.reduce((sum, e, i) => {
-			sum += e * weights[i]
-			return sum
-		}, 0)
-	}
-
 	before(async () => {
 		circuit = await wasm_tester(path.join(__dirname, "circuits", "score_test.circom"))
 		poseidon = await Poseidon.initialize()
@@ -137,7 +102,7 @@ describe("Score circuit", function () {
 		const privateKey = toFixedHex(randomBN())
 		const publicKey = eddsa.prv2pub(privateKey)
 
-		const docs = generateDocuments(nCerts, issuer, subject)
+		const docs = generateDocuments(nCerts, issuer, subject,  poseidonHash2, poseidonHash)
 		const leaves = docs.map(d => d.root())
 		const certree = getNewCertree(leaves, CERT_TREE_HEIGHT, ZERO_VALUE)
 
@@ -162,7 +127,7 @@ describe("Score circuit", function () {
 			nullifierHashes: credentials.map(c => c.nullifierHash),
 			credentialRoots: credentials.map(c => c.root),
 			subjects: credentials.map(c => c.subject),
-			secrets: credentials.map((c) => c.secret),
+			secrets: credentials.map(c => c.secret),
 			pathCertreeElements: certProofs.map(p => p.pathCertreeElements),
 			pathCertreeIndices: certProofs.map(p => p.pathCertreeIndices),
 			...credProofInputs
