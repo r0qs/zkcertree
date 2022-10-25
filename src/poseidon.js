@@ -6,6 +6,7 @@ class Poseidon {
 
 	constructor(hashFunction) {
 		this.#hashFn = hashFunction
+		this.F = hashFunction.F
 	}
 
 	static async initialize() {
@@ -17,7 +18,15 @@ class Poseidon {
 	 * @param {Array<BigNumber>} items Array of items to be hashed
 	 */
 	hash(items) {
-		return this.#hashFn.F.toString(this.#hashFn(items.map((x) => BigNumber.from(x).toBigInt())))
+		return this.F.toString(this.#hashFn(items.map((x) => BigNumber.from(x).toBigInt())))
+	}
+
+	/**
+	 * Hash two elements using Poseidon elliptic curve hash function
+	 * @param {BigNumber, BigNumber} elements to be hashed
+	 */
+	hash2(a, b) {
+		return this.hash([a, b])
 	}
 }
 
