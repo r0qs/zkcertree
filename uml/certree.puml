@@ -103,7 +103,7 @@ Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 Subject -> Subject: <latex>C = h(R_{ct}, secret, h(PK_{s}))</latex>
 Subject -> Subject: <latex>P_{mt} = MerkleProof(R_{mt}, C)</latex>
 Subject -> Subject: <latex>P_{ct} = MerkleProof(R_{ct}, h(fkey, value, salt))</latex>
-Subject -> Subject: <latex>inputs = Prepare(C, P_{mt}, P_{ct}, R_{mt}, h(R_{ct}), fkey, Criterion, OP)</latex>
+Subject -> Subject: <latex>inputs = Prepare(C, P_{mt}, P_{ct}, R_{mt},\\ h(R_{ct}), fkey, Criterion, OP)</latex>
 Subject -> Subject: <latex>P_{zk} = QueryCredentialFieldCircuit(zkey, inputs)</latex>
 
 Subject -> Verifier: <latex>(P_{zk}, h(R_{ct}),  R_{mt})</latex>
@@ -115,7 +115,7 @@ alt #lightgreen Successful case
 else #pink Failure
   Contract --> Verifier: Credential is not valid
 end
-Verifier -> Verifier: <latex>Verify(vkey, P_{zk}, h(R_{ct}), R_{mt}, fkey, Criterion, OP)</latex>
+Verifier -> Verifier: <latex>Verify(vkey, P_{zk}, h(R_{ct}), R_{mt},\\ fkey, Criterion, OP)</latex>
 @enduml
 
 @startuml (id=PresentationTimeframe)
@@ -127,7 +127,7 @@ loop n times
   Subject -> Subject: <latex>ct_{i} = BuildCredTree(credDoc_{i})</latex>
   Subject -> Subject: <latex>h_{i}, mp_{i} = MerkleProof(ct_{i})</latex>
 end
-Subject -> Subject: <latex>inputs = Prepare(mt, [h_{0},...,h_{n-1}], [mp_{0},...,mp_{n-1}],tsk, p, >=)</latex>
+Subject -> Subject: <latex>inputs = Prepare(mt, [h_{0},...,h_{n-1}],\\ [mp_{0},...,mp_{n-1}],tsk, p, >=)</latex>
 Subject -> Subject: <latex>P_{zk}, d_{total} = TimeframeProofCircuit(zkey, inputs)</latex>
 Subject -> Verifier: <latex>(P_{zk}, [h_{0},...,h_{n-1}], R_{mt}, d_{total})</latex>
 Verifier -> Contract: <latex>IsKnownRoot(R_{mt})</latex>
@@ -175,7 +175,7 @@ loop n times
     Contract --> Verifier: Credential is not valid
   end
 end
-Verifier -> Verifier: <latex>Verify(vkey, P_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], R_{mt}, sc)</latex>
+Verifier -> Verifier: <latex>Verify(vkey, P_{zk}, [T_{0},...,T_{n-1}],\\ [W_{0},...,W_{n-1}], R_{mt}, sc)</latex>
 @enduml
 
 @enduml
