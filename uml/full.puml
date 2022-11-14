@@ -12,7 +12,7 @@ hide unlinked
 
 participant "Subject" as Subject
 participant "Issuer" as  Issuer
-participant "ZKCertree Contract" as Contract
+participant "zkCert Contract" as Contract
 participant "Verifier" as  Verifier
 
 !include certree.puml!Registration
