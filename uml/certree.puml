@@ -159,10 +159,10 @@ loop n times
   Subject -> Subject: <latex>doc_{i} = GetCredentialWith(T_{i})</latex>
   Subject -> Subject: <latex>rct_{i}, ct_{i} = BuildCredTree(doc_{i})</latex>
   Subject -> Subject: <latex>mp_{i} = MerkleProof(mt, h(rct_{i}))</latex>
-  Subject -> Subject: <latex>fields_{i} = [doc_{i}.tag, doc_{i}.grade]</latex>
-  Subject -> Subject: <latex>cp_{i} = MerkleMultiProof(ct_{i}, fields_{i})</latex>
+  Subject -> Subject: <latex>f_{i} = [doc_{i}.tag, doc_{i}.grade]</latex>
+  Subject -> Subject: <latex>cp_{i} = MerkleMultiProof(ct_{i}, f_{i})</latex>
 end
-Subject -> Subject: <latex>inputs = Prepare(mt, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}],\\[h_{0},...,h_{n-1}], [fields_{0},...,fields_{n-1}], [mp_{0},...,mp_{n-1}],\\[cp_{0},...,cp_{n-1}])</latex>
+Subject -> Subject: <latex>inputs = Prepare(mt, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}],\\[h_{0},...,h_{n-1}], [f_{0},...,f_{n-1}], [mp_{0},...,mp_{n-1}],\\[cp_{0},...,cp_{n-1}])</latex>
 Subject -> Subject: <latex>P_{zk}, sc = ScoreCircuit(zkey, inputs)</latex>
 Subject -> Verifier: <latex>(P_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], R_{mt}, [h_{0},...,h_{n-1}], sc)</latex>
 Verifier -> Contract: <latex>IsKnownRoot(R_{mt})</latex>
