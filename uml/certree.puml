@@ -125,9 +125,9 @@ Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 loop n times
   Subject -> Subject: <latex>ct_{i} = BuildCredTree(credDoc_{i})</latex>
-  Subject -> Subject: <latex>h_{i}, mproof_{i} = merkleProof(ct_{i})</latex>
+  Subject -> Subject: <latex>h_{i}, mp_{i} = merkleProof(ct_{i})</latex>
 end
-Subject -> Subject: <latex>inputs = PrepareInputs(mt, [h_{0},...,h_{n-1}], [mproof_{0},...,mproof_{n-1}],tsk, p, >=)</latex>
+Subject -> Subject: <latex>inputs = PrepareInputs(mt, [h_{0},...,h_{n-1}], [mp_{0},...,mp_{n-1}],tsk, p, >=)</latex>
 Subject -> Subject: <latex>P_{zk}, d_{total} = TimeframeProofCircuit(zkey, inputs)</latex>
 Subject -> Verifier: <latex>(P_{zk}, [h_{0},...,h_{n-1}], R_{mt}, d_{total})</latex>
 Verifier -> Contract: <latex>IsKnownRoot(R_{mt})</latex>
