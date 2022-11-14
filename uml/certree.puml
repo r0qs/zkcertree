@@ -11,7 +11,7 @@ Issuer -[#FF0000]> Subject: <latex>CredDoc_{s}</latex><size:28><&lock-locked></s
 ' TODO: Alternativaly we could hide the nullifier from the issuer while still able to prove
 ' the correcness of the commitment (e.g. h(CRoot + salt)).
 Subject -> Subject: <latex>C = h(R_{ct}, secret, h(PK_{s}))</latex>
-Subject -> Subject: <latex>inputs = PrepareInputs(Sign(SK_{s}, C), C, R_{ct}, PK_{s})</latex>
+Subject -> Subject: <latex>inputs = Prepare(Sign(SK_{s}, C), C, R_{ct}, PK_{s})</latex>
 Subject -> Subject: <latex>P_{zk} = IssuanceCircuit(zkey, inputs)</latex>
 Subject -[#FF0000]> Issuer : <latex>(P_{zk}, C, PK_{s})</latex><size:28><&lock-locked></size>
 ' note right Issuer
@@ -34,7 +34,7 @@ Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 Subject -> Subject: <latex>C = h(R_{ct}, secret, h(PK_{s}))</latex>
 Subject -> Subject: <latex>P_{mt} = MerkleProof(R_{mt}, C)</latex>
-Subject -> Subject: <latex>inputs = PrepareInputs(C, P_{mt}, R_{mt}, h(R_{ct}), sender)</latex>
+Subject -> Subject: <latex>inputs = Prepare(C, P_{mt}, R_{mt}, h(R_{ct}), sender)</latex>
 Subject -> Subject: <latex>P_{zk} = ApprovalCircuit(zkey, inputs)</latex>
 Subject -> Contract: <latex>Approve(P_{zk}, R_{mt}, h(R_{ct}))</latex>
 ' Attest subject consents with the credential's claims
@@ -68,7 +68,7 @@ Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 
 Subject -> Subject: <latex>C = h(R_{ct}, secret, h(PK_{s}))</latex>
 Subject -> Subject: <latex>P_{mt} = MerkleProof(R_{mt}, C)</latex>
-Subject -> Subject: <latex>inputs = PrepareInputs(Sign(SK_{s}, C), C, P_{mt}, R_{mt}, h(R_{ct}), PK_{s})</latex>
+Subject -> Subject: <latex>inputs = Prepare(Sign(SK_{s}, C), C, P_{mt}, R_{mt}, h(R_{ct}), PK_{s})</latex>
 Subject -> Subject: <latex>P_{zk} = PresentationAuthCircuit(zkey, inputs)</latex>
 
 Subject -> Verifier: <latex>(P_{zk}, h(R_{ct}),  R_{mt}, PK_{s})</latex>
@@ -103,7 +103,7 @@ Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 Subject -> Subject: <latex>C = h(R_{ct}, secret, h(PK_{s}))</latex>
 Subject -> Subject: <latex>P_{mt} = MerkleProof(R_{mt}, C)</latex>
 Subject -> Subject: <latex>P_{ct} = MerkleProof(R_{ct}, h(FieldKey, value, salt))</latex>
-Subject -> Subject: <latex>inputs = PrepareInputs(C, P_{mt}, P_{ct}, R_{mt}, h(R_{ct}), FieldKey, Criterion, OP)</latex>
+Subject -> Subject: <latex>inputs = Prepare(C, P_{mt}, P_{ct}, R_{mt}, h(R_{ct}), FieldKey, Criterion, OP)</latex>
 Subject -> Subject: <latex>P_{zk} = QueryCredentialFieldCircuit(zkey, inputs)</latex>
 
 Subject -> Verifier: <latex>(P_{zk}, h(R_{ct}),  R_{mt})</latex>
@@ -127,7 +127,7 @@ loop n times
   Subject -> Subject: <latex>ct_{i} = BuildCredTree(credDoc_{i})</latex>
   Subject -> Subject: <latex>h_{i}, mp_{i} = MerkleProof(ct_{i})</latex>
 end
-Subject -> Subject: <latex>inputs = PrepareInputs(mt, [h_{0},...,h_{n-1}], [mp_{0},...,mp_{n-1}],tsk, p, >=)</latex>
+Subject -> Subject: <latex>inputs = Prepare(mt, [h_{0},...,h_{n-1}], [mp_{0},...,mp_{n-1}],tsk, p, >=)</latex>
 Subject -> Subject: <latex>P_{zk}, d_{total} = TimeframeProofCircuit(zkey, inputs)</latex>
 Subject -> Verifier: <latex>(P_{zk}, [h_{0},...,h_{n-1}], R_{mt}, d_{total})</latex>
 Verifier -> Contract: <latex>IsKnownRoot(R_{mt})</latex>
@@ -162,7 +162,7 @@ loop n times
   Subject -> Subject: <latex>fields_{i} = [doc_{i}.tag, doc_{i}.grade]</latex>
   Subject -> Subject: <latex>cp_{i} = MerkleMultiProof(ct_{i}, fields_{i})</latex>
 end
-Subject -> Subject: <latex>inputs = PrepareInputs(mt, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}],\\[h_{0},...,h_{n-1}], [fields_{0},...,fields_{n-1}], [mp_{0},...,mp_{n-1}],\\[cp_{0},...,cp_{n-1}])</latex>
+Subject -> Subject: <latex>inputs = Prepare(mt, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}],\\[h_{0},...,h_{n-1}], [fields_{0},...,fields_{n-1}], [mp_{0},...,mp_{n-1}],\\[cp_{0},...,cp_{n-1}])</latex>
 Subject -> Subject: <latex>P_{zk}, sc = ScoreCircuit(zkey, inputs)</latex>
 Subject -> Verifier: <latex>(P_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], R_{mt}, [h_{0},...,h_{n-1}], sc)</latex>
 Verifier -> Contract: <latex>IsKnownRoot(R_{mt})</latex>
