@@ -12,14 +12,14 @@ Issuer -[#FF0000]> Subject: <latex>CredDoc_{s}</latex><size:28><&lock-locked></s
 ' the correcness of the commitment (e.g. h(CRoot + salt)).
 Subject -> Subject: <latex>C = h(R_{ct}, secret, h(PK_{s}))</latex>
 Subject -> Subject: <latex>inputs = PrepareInputs(Sign(SK_{s}, C), C, R_{ct}, PK_{s})</latex>
-Subject -> Subject: <latex>proof_{zk} = IssuanceCircuit(zkey, inputs)</latex>
-Subject -[#FF0000]> Issuer : <latex>(proof_{zk}, C, PK_{s})</latex><size:28><&lock-locked></size>
+Subject -> Subject: <latex>P_{zk} = IssuanceCircuit(zkey, inputs)</latex>
+Subject -[#FF0000]> Issuer : <latex>(P_{zk}, C, PK_{s})</latex><size:28><&lock-locked></size>
 ' note right Issuer
 '   Checks:
 '     - The commitment is from the correct credential root
 '     - The commitment is signed by the correct subject
 ' end note
-Issuer -> Issuer: <latex>Verify(vkey, proof_{zk}, C, R_{ct}, PK_{s})</latex>
+Issuer -> Issuer: <latex>Verify(vkey, P_{zk}, C, R_{ct}, PK_{s})</latex>
 Issuer -> Contract: <latex>Issue(C)</latex>
 
 Contract -> Contract: <latex>mt.Insert(C)</latex>
@@ -33,10 +33,10 @@ Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 Subject -> Subject: <latex>C = h(R_{ct}, secret, h(PK_{s}))</latex>
-Subject -> Subject: <latex>proof_{mt} = MerkleProof(R_{mt}, C)</latex>
-Subject -> Subject: <latex>inputs = PrepareInputs(C, proof_{mt}, R_{mt}, h(R_{ct}), sender)</latex>
-Subject -> Subject: <latex>proof_{zk} = ApprovalCircuit(zkey, inputs)</latex>
-Subject -> Contract: <latex>Approve(proof_{zk}, R_{mt}, h(R_{ct}))</latex>
+Subject -> Subject: <latex>P_{mt} = MerkleProof(R_{mt}, C)</latex>
+Subject -> Subject: <latex>inputs = PrepareInputs(C, P_{mt}, R_{mt}, h(R_{ct}), sender)</latex>
+Subject -> Subject: <latex>P_{zk} = ApprovalCircuit(zkey, inputs)</latex>
+Subject -> Contract: <latex>Approve(P_{zk}, R_{mt}, h(R_{ct}))</latex>
 ' Attest subject consents with the credential's claims
 ' note right Contract
 '   Checks:
@@ -44,7 +44,7 @@ Subject -> Contract: <latex>Approve(proof_{zk}, R_{mt}, h(R_{ct}))</latex>
 '     - The credential was not approved already
 '     - The sender is the creator of the proof
 ' end note
-Contract -> Contract: <latex>Verify(vkey, proof_{zk}, R_{mt}, h(R_{ct}), sender)</latex>
+Contract -> Contract: <latex>Verify(vkey, P_{zk}, R_{mt}, h(R_{ct}), sender)</latex>
 Contract -> Contract: <latex>MarkCredentialAsIssued(h(R_{ct}))</latex>
 Contract -> Contract: <latex>Event:CredentialIssued(sender, h(R_{ct}), timestamp)</latex>
 @enduml
@@ -67,11 +67,11 @@ Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 
 Subject -> Subject: <latex>C = h(R_{ct}, secret, h(PK_{s}))</latex>
-Subject -> Subject: <latex>proof_{mt} = MerkleProof(R_{mt}, C)</latex>
-Subject -> Subject: <latex>inputs = PrepareInputs(Sign(SK_{s}, C), C, proof_{mt}, R_{mt}, h(R_{ct}), PK_{s})</latex>
-Subject -> Subject: <latex>proof_{zk} = PresentationAuthCircuit(zkey, inputs)</latex>
+Subject -> Subject: <latex>P_{mt} = MerkleProof(R_{mt}, C)</latex>
+Subject -> Subject: <latex>inputs = PrepareInputs(Sign(SK_{s}, C), C, P_{mt}, R_{mt}, h(R_{ct}), PK_{s})</latex>
+Subject -> Subject: <latex>P_{zk} = PresentationAuthCircuit(zkey, inputs)</latex>
 
-Subject -> Verifier: <latex>(proof_{zk}, h(R_{ct}),  R_{mt}, PK_{s})</latex>
+Subject -> Verifier: <latex>(P_{zk}, h(R_{ct}),  R_{mt}, PK_{s})</latex>
 Verifier -> Contract: <latex>IsKnownRoot(R_{mt})</latex>
 Contract --> Verifier: <latex>true/false</latex>
 ' note right Verifier
@@ -88,7 +88,7 @@ alt #lightgreen Successful case
 else #pink Failure
   Contract --> Verifier: Credential is not valid
 end
-Verifier -> Verifier: <latex>Verify(vkey, proof_{zk}, h(R_{ct}), R_{mt}, PK_{s})</latex>
+Verifier -> Verifier: <latex>Verify(vkey, P_{zk}, h(R_{ct}), R_{mt}, PK_{s})</latex>
 @enduml
 
 @startuml (id=PresentationConditionalQuery)
@@ -101,12 +101,12 @@ Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 Subject -> Subject: <latex>C = h(R_{ct}, secret, h(PK_{s}))</latex>
-Subject -> Subject: <latex>proof_{mt} = MerkleProof(R_{mt}, C)</latex>
-Subject -> Subject: <latex>proof_{ct} = MerkleProof(R_{ct}, h(FieldKey, value, salt))</latex>
-Subject -> Subject: <latex>inputs = PrepareInputs(C, proof_{mt}, proof_{ct}, R_{mt}, h(R_{ct}), FieldKey, Criterion, OP)</latex>
-Subject -> Subject: <latex>proof_{zk} = QueryCredentialFieldCircuit(zkey, inputs)</latex>
+Subject -> Subject: <latex>P_{mt} = MerkleProof(R_{mt}, C)</latex>
+Subject -> Subject: <latex>P_{ct} = MerkleProof(R_{ct}, h(FieldKey, value, salt))</latex>
+Subject -> Subject: <latex>inputs = PrepareInputs(C, P_{mt}, P_{ct}, R_{mt}, h(R_{ct}), FieldKey, Criterion, OP)</latex>
+Subject -> Subject: <latex>P_{zk} = QueryCredentialFieldCircuit(zkey, inputs)</latex>
 
-Subject -> Verifier: <latex>(proof_{zk}, h(R_{ct}),  R_{mt})</latex>
+Subject -> Verifier: <latex>(P_{zk}, h(R_{ct}),  R_{mt})</latex>
 Verifier -> Contract: <latex>IsKnownRoot(R_{mt})</latex>
 Contract --> Verifier: <latex>true/false</latex>
 Verifier -> Contract: <latex>VerifyCredentialStatus(h(R_{ct}))</latex>
@@ -115,7 +115,7 @@ alt #lightgreen Successful case
 else #pink Failure
   Contract --> Verifier: Credential is not valid
 end
-Verifier -> Verifier: <latex>Verify(vkey, proof_{zk}, h(R_{ct}), R_{mt}, FieldKey, Criterion, OP)</latex>
+Verifier -> Verifier: <latex>Verify(vkey, P_{zk}, h(R_{ct}), R_{mt}, FieldKey, Criterion, OP)</latex>
 @enduml
 
 @startuml (id=PresentationTimeframe)
@@ -128,8 +128,8 @@ loop n times
   Subject -> Subject: <latex>h_{i}, mproof_{i} = merkleProof(ct_{i})</latex>
 end
 Subject -> Subject: <latex>inputs = PrepareInputs(mt, [h_{0},...,h_{n-1}], [mproof_{0},...,mproof_{n-1}],tsk, p, >=)</latex>
-Subject -> Subject: <latex>proof_{zk}, d_{total} = TimeframeProofCircuit(zkey, inputs)</latex>
-Subject -> Verifier: <latex>(proof_{zk}, [h_{0},...,h_{n-1}], R_{mt}, d_{total})</latex>
+Subject -> Subject: <latex>P_{zk}, d_{total} = TimeframeProofCircuit(zkey, inputs)</latex>
+Subject -> Verifier: <latex>(P_{zk}, [h_{0},...,h_{n-1}], R_{mt}, d_{total})</latex>
 Verifier -> Contract: <latex>IsKnownRoot(R_{mt})</latex>
 Contract --> Verifier: <latex>true/false</latex>
 loop n times
@@ -147,7 +147,7 @@ end
 ' d_{total} can never be greater than t_{total} for a valid credential because of the happens before relation between the issuance and approval events.
 ' each d of d_{total} is created during the credential issuance (offchain), and each t is created during the credential approval (onchain), thus timstamp t must be always after a d.
 Verifier -> Verifier: <latex>Check(t_{total} \ge d_{total} \land d_{total}\ \ge \ p)</latex>
-Verifier -> Verifier: <latex>Verify(vkey, proof_{zk}, [h_{0},...,h_{n-1}],  R_{mt}, tsk, d_{total}, p, >=)</latex>
+Verifier -> Verifier: <latex>Verify(vkey, P_{zk}, [h_{0},...,h_{n-1}],  R_{mt}, tsk, d_{total}, p, >=)</latex>
 @enduml
 
 @startuml (id=PresentationScore)
@@ -163,8 +163,8 @@ loop n times
   Subject -> Subject: <latex>ctproof_{i} = merkleMultiProof(ct_{i}, fields_{i})</latex>
 end
 Subject -> Subject: <latex>inputs = PrepareInputs(mt, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}],\\[h_{0},...,h_{n-1}], [fields_{0},...,fields_{n-1}], [mtproof_{0},...,mtproof_{n-1}],\\[ctproof_{0},...,ctproof_{n-1}])</latex>
-Subject -> Subject: <latex>proof_{zk}, sc = ScoreCircuit(zkey, inputs)</latex>
-Subject -> Verifier: <latex>(proof_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], R_{mt}, [h_{0},...,h_{n-1}], sc)</latex>
+Subject -> Subject: <latex>P_{zk}, sc = ScoreCircuit(zkey, inputs)</latex>
+Subject -> Verifier: <latex>(P_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], R_{mt}, [h_{0},...,h_{n-1}], sc)</latex>
 Verifier -> Contract: <latex>IsKnownRoot(R_{mt})</latex>
 Contract --> Verifier: <latex>true/false</latex>
 loop n times
@@ -175,7 +175,7 @@ loop n times
     Contract --> Verifier: Credential is not valid
   end
 end
-Verifier -> Verifier: <latex>Verify(vkey, proof_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], R_{mt}, sc)</latex>
+Verifier -> Verifier: <latex>Verify(vkey, P_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], R_{mt}, sc)</latex>
 @enduml
 
 @enduml
