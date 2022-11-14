@@ -31,7 +31,7 @@ Contract -> Contract: <latex>Event:CredentialCreated(C, index, timestamp)</latex
 Subject -> Contract: <latex>CollectCredentialCreatedEvents()</latex>
 Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
-Subject -> Subject: <latex>ct = BuildCredTree(credDocument)</latex>
+Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 Subject -> Subject: <latex>C = h(Root_{ct}, secret, h(PK_{s}))</latex>
 Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, C)</latex>
 Subject -> Subject: <latex>inputs = PrepareInputs(C, proof_{mt}, Root_{mt}, h(Root_{ct}), sender)</latex>
@@ -64,7 +64,7 @@ Verifier -> Subject: <latex>RequestAuthProof()</latex>
 Subject -> Contract: <latex>CollectCredentialCreatedEvents()</latex>
 Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
-Subject -> Subject: <latex>ct = BuildCredTree(credDocument)</latex>
+Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 
 Subject -> Subject: <latex>C = h(Root_{ct}, secret, h(PK_{s}))</latex>
 Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, C)</latex>
@@ -99,7 +99,7 @@ Verifier -> Subject: <latex>RequestProofFor(FieldKey, Criterion, OP)</latex>
 Subject -> Contract: <latex>CollectCredentialCreatedEvents()</latex>
 Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
-Subject -> Subject: <latex>ct = BuildCredTree(credDocument)</latex>
+Subject -> Subject: <latex>ct = BuildCredTree(credDoc)</latex>
 Subject -> Subject: <latex>C = h(Root_{ct}, secret, h(PK_{s}))</latex>
 Subject -> Subject: <latex>proof_{mt} = MerkleProof(Root_{mt}, C)</latex>
 Subject -> Subject: <latex>proof_{ct} = MerkleProof(Root_{ct}, h(FieldKey, value, salt))</latex>
@@ -124,7 +124,7 @@ Subject -> Contract: <latex>CollectCredentialCreatedEvents()</latex>
 Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 loop n times
-  Subject -> Subject: <latex>ct_{i} = BuildCredTree(CredDoc_{i})</latex>
+  Subject -> Subject: <latex>ct_{i} = BuildCredTree(credDoc_{i})</latex>
   Subject -> Subject: <latex>h_{i}, mproof_{i} = merkleProof(ct_{i})</latex>
 end
 Subject -> Subject: <latex>inputs = PrepareInputs(mt, [h_{0},...,h_{n-1}], [mproof_{0},...,mproof_{n-1}],tsk, p, >=)</latex>
