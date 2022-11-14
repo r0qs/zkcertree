@@ -2,9 +2,9 @@
 ' == Registration Phase ==
 Subject -> Issuer: <latex>Enrollment(PK_{s})</latex>
 ' Creates a credential as a precise proof (merkle tree) for the subject s
-Issuer -> Issuer: <latex>Root_{ct}, CredDocument_{s} = CreateCredential(s, data)</latex>
+Issuer -> Issuer: <latex>Root_{ct}, CredDoc_{s} = CreateCredential(s, data)</latex>
 ' Send the credential to the subject over an encrypted channel
-Issuer -[#FF0000]> Subject: <latex>CredDocument_{s}</latex><size:28><&lock-locked></size>
+Issuer -[#FF0000]> Subject: <latex>CredDoc_{s}</latex><size:28><&lock-locked></size>
 ' Subject -> Subject: <latex>CheckCredClaims()</latex>
 ' Subject -> Subject: <latex>nullifier = Root_{ct}</lnullifieratex>
 ' In our case the nullifier is a shared data between the issuer and the subject
@@ -124,7 +124,7 @@ Subject -> Contract: <latex>CollectCredentialCreatedEvents()</latex>
 Contract --> Subject: <latex>events</latex>
 Subject -> Subject: <latex>mt = BuildCertTree(events)</latex>
 loop n times
-  Subject -> Subject: <latex>ct_{i} = BuildCredTree(credDocument_{i})</latex>
+  Subject -> Subject: <latex>ct_{i} = BuildCredTree(CredDoc_{i})</latex>
   Subject -> Subject: <latex>h_{i}, mproof_{i} = merkleProof(ct_{i})</latex>
 end
 Subject -> Subject: <latex>inputs = PrepareInputs(mt, [h_{0},...,h_{n-1}], [mproof_{0},...,mproof_{n-1}],tsk, p, >=)</latex>
