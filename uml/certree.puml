@@ -164,17 +164,17 @@ loop n times
 end
 Subject -> Subject: <latex>inputs = PrepareInputs(mt, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}],\\[h_{0},...,h_{n-1}], [fields_{0},...,fields_{n-1}], [mtproof_{0},...,mtproof_{n-1}],\\[ctproof_{0},...,ctproof_{n-1}])</latex>
 Subject -> Subject: <latex>proof_{zk}, sc = ScoreCircuit(zkey, inputs)</latex>
-Subject -> Verifier: <latex>(proof_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], Root_{mt}, [h_{0},...,h_{n-1}], sc)</latex>
+Subject -> Verifier: <latex>(proof_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], Root_{mt}, sc)</latex>
 Verifier -> Contract: <latex>IsKnownRoot(Root_{mt})</latex>
 Contract --> Verifier: <latex>true/false</latex>
-loop n times
-  Verifier -> Contract: <latex>VerifyCredentialStatus(h_{i})</latex>
-  alt #lightgreen Successful case
-    Contract --> Verifier: Credential is valid (not revoked or expired)
-  else #pink Failure
-    Contract --> Verifier: Credential is not valid
-  end
-end
+' loop n times
+'   Verifier -> Contract: <latex>VerifyCredentialStatus(h_{i})</latex>
+'   alt #lightgreen Successful case
+'     Contract --> Verifier: Credential is valid (not revoked or expired)
+'   else #pink Failure
+'     Contract --> Verifier: Credential is not valid
+'   end
+' end
 Verifier -> Verifier: <latex>Verify(vkey, proof_{zk}, [T_{0},...,T_{n-1}], [W_{0},...,W_{n-1}], Root_{mt}, sc)</latex>
 @enduml
 
